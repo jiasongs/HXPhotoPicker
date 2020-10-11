@@ -228,10 +228,10 @@
     [self setBrushinePromptViewSize];
     
     self.mosaicView.frame = CGRectMake(leftMargin, self.toolsView.hx_y - HXmosaicViewHeight, self.view.hx_w - leftMargin * 2, HXmosaicViewHeight);
-    self.topMaskView.frame = CGRectMake(0, 0, HX_ScreenWidth, hxNavigationBarHeight);
-    self.topMaskLayer.frame = CGRectMake(0, 0, HX_ScreenWidth, hxNavigationBarHeight + 30.f);
+    self.topMaskView.frame = CGRectMake(0, 0, self.view.hx_w, hxNavigationBarHeight);
+    self.topMaskLayer.frame = CGRectMake(0, 0, self.view.hx_w, hxNavigationBarHeight + 30.f);
 
-    self.bottomMaskView.frame = CGRectMake(0, HX_ScreenHeight - hxBottomMargin - 120, HX_ScreenWidth, hxBottomMargin + 120);
+    self.bottomMaskView.frame = CGRectMake(0, self.view.hx_h - hxBottomMargin - 120, self.view.hx_w, hxBottomMargin + 120);
     self.bottomMaskLayer.frame = self.bottomMaskView.bounds;
     
     if (self.orientationDidChange) {
@@ -941,8 +941,8 @@
 }
 - (UIView *)topMaskView {
     if (!_topMaskView) {
-        _topMaskView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, HX_ScreenWidth, hxNavigationBarHeight)];
-        self.topMaskLayer.frame = CGRectMake(0, 0, HX_ScreenWidth, hxNavigationBarHeight + 30.f);
+        _topMaskView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.hx_w, hxNavigationBarHeight)];
+        self.topMaskLayer.frame = CGRectMake(0, 0, self.view.hx_w, hxNavigationBarHeight + 30.f);
         [_topMaskView.layer addSublayer:self.topMaskLayer];
     }
     return _topMaskView;
@@ -963,7 +963,7 @@
 }
 - (UIView *)bottomMaskView {
     if (!_bottomMaskView) {
-        _bottomMaskView = [[UIView alloc] initWithFrame:CGRectMake(0, HX_ScreenHeight - hxBottomMargin - 120, HX_ScreenWidth, hxBottomMargin + 120)];
+        _bottomMaskView = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.hx_h - hxBottomMargin - 120, self.view.hx_w, hxBottomMargin + 120)];
         _bottomMaskView.userInteractionEnabled = NO;
         self.bottomMaskLayer.frame = _bottomMaskView.bounds;
         [_bottomMaskView.layer addSublayer:self.bottomMaskLayer];

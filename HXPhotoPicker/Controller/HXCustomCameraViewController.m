@@ -823,7 +823,7 @@ CLLocationManagerDelegate
 }
 - (UIView *)bottomToolsView {
     if (!_bottomToolsView) {
-        _bottomToolsView = [[UIView alloc] initWithFrame:CGRectMake(0, HX_ScreenHeight, HX_ScreenWidth, 50.f)];
+        _bottomToolsView = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.hx_h, self.view.hx_w, 50.f)];
         self.bottomMaskLayer.frame = _bottomToolsView.bounds;
         [_bottomToolsView.layer insertSublayer:self.bottomMaskLayer atIndex:0];
         _bottomToolsView.hidden = YES;
@@ -837,13 +837,13 @@ CLLocationManagerDelegate
     self.bottomToolsView.hidden = NO;
     [UIView animateWithDuration:0.2 animations:^{
         self.bottomToolsView.alpha = 1;
-        self.bottomToolsView.hx_y = HX_ScreenHeight - 50.f -  hxBottomMargin;
+        self.bottomToolsView.hx_y = self.view.hx_h - 50.f -  hxBottomMargin;
     }];
 }
 - (void)hideBottomToolsView {
     self.bottomToolsView.hidden = YES;
     self.bottomToolsView.alpha = 0;
-    self.bottomToolsView.hx_y = HX_ScreenHeight;
+    self.bottomToolsView.hx_y = self.view.hx_h;
     self.videoCropBtn.hidden = NO;
 }
 - (UIButton *)doneBtn {

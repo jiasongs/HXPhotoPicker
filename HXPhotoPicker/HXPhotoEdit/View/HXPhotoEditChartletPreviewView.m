@@ -63,7 +63,7 @@
     }else if (model.type == HXPhotoEditChartletModelType_NetworkURL) {
         self.loadingView.hidden = NO;
         [self.loadingView startAnimating];
-        self.imageSize = CGSizeMake(HX_ScreenWidth / 3, HX_ScreenWidth / 3);
+        self.imageSize = CGSizeMake(self.hx_w / 3, self.hx_w / 3);
         [self updateFrame];
         [self layoutIfNeeded];
         HXWeakSelf
@@ -91,23 +91,23 @@
 }
 - (CGRect)viewFrame {
     if (CGRectIsEmpty(_viewFrame)) {
-        CGFloat width = HX_ScreenWidth / 2;
+        CGFloat width = self.hx_w / 2;
         CGFloat height = width;
         CGFloat imgWidth = self.imageSize.width;
         CGFloat imgHeight = self.imageSize.height;
         if ([[UIApplication sharedApplication] statusBarOrientation] == UIInterfaceOrientationPortrait || [[UIApplication sharedApplication] statusBarOrientation] == UIInterfaceOrientationPortraitUpsideDown) {
             if (imgWidth > imgHeight) {
-                width = HX_ScreenWidth - 40;
+                width = self.hx_w - 40;
             }else if (imgHeight > imgWidth) {
-                height = HX_ScreenWidth - 40;
+                height = self.hx_w - 40;
             }
         }else {
-            width = HX_ScreenHeight / 2;
+            width = self.hx_h / 2;
             height = width;
             if (imgWidth > imgHeight) {
-                width = HX_ScreenHeight - 40;
+                width = self.hx_h - 40;
             }else if (imgHeight > imgWidth) {
-                height = HX_ScreenHeight - 40;
+                height = self.hx_h - 40;
             }
         }
         CGFloat w;
@@ -131,8 +131,8 @@
         h += 20;
         CGFloat x = self.point.x - w / 2;
         CGFloat y = self.point.y - 10 - h;
-        if (x + w > HX_ScreenWidth - 15) {
-            x = HX_ScreenWidth - 15 - w;
+        if (x + w > self.hx_w - 15) {
+            x = self.hx_w - 15 - w;
         }
         if (x < 15) {
             x = 15;

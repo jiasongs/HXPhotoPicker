@@ -5,6 +5,7 @@ target "HXPhotoPicker-Demo" do
     pod 'SDWebImage'
     pod 'AFNetworking'
     pod 'Masonry'
+    pod 'LookinServer', :configurations => ['Debug']
      # SD或YY任选其一...
 #    pod 'YYWebImage'
 end

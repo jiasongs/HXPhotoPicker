@@ -142,9 +142,10 @@ HX_PhotoEditViewControllerDelegate
 }
 - (void)viewDidLayoutSubviews {
     [super viewDidLayoutSubviews];
-    if (!CGRectEqualToRect(self.view.frame, [UIScreen mainScreen].bounds)) {
-        self.view.frame = [UIScreen mainScreen].bounds;
-    }
+//    if (!CGRectEqualToRect(self.view.frame, [UIScreen mainScreen].bounds)) {
+//        self.view.frame = [UIScreen mainScreen].bounds;
+//    }
+    [self changeSubviewFrame];
     if (self.orientationDidChange || self.firstChangeFrame) {
         [self changeSubviewFrame];
         self.orientationDidChange = NO;
@@ -894,7 +895,7 @@ HX_PhotoEditViewControllerDelegate
     if (scrollView != self.collectionView) {
         return;
     }
-    CGFloat width = [UIScreen mainScreen].bounds.size.width;
+    CGFloat width = self.view.hx_w;
     CGFloat offsetx = self.collectionView.contentOffset.x;
     NSInteger currentIndex = (offsetx + (width + 20) * 0.5) / (width + 20);
     if (currentIndex > self.modelArray.count - 1) {
@@ -984,7 +985,7 @@ HX_PhotoEditViewControllerDelegate
     }
     if (self.exteriorPreviewStyle == HXPhotoViewPreViewShowStyleDark) {
         float difference = fabs(offsetx - self.currentModel.previewContentOffsetX);
-        CGFloat width = [UIScreen mainScreen].bounds.size.width;
+        CGFloat width = self.view.hx_w;
         if (difference > width) {
             difference = width;
         }
@@ -1415,7 +1416,7 @@ HX_PhotoEditViewControllerDelegate
 }
 - (HXPhotoCustomNavigationBar *)navBar {
     if (!_navBar) {
-        CGFloat width = [UIScreen mainScreen].bounds.size.width;
+        CGFloat width = self.view.hx_w;
         _navBar = [[HXPhotoCustomNavigationBar alloc] initWithFrame:CGRectMake(0, 0, width, hxNavigationBarHeight)];
         _navBar.autoresizingMask = UIViewAutoresizingFlexibleWidth;
         [_navBar pushNavigationItem:self.navItem animated:NO];

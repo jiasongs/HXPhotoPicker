@@ -161,6 +161,7 @@ HX_PhotoEditViewControllerDelegate
 }
 - (void)viewDidLayoutSubviews {
     [super viewDidLayoutSubviews];
+    [self changeSubviewFrame];
     if (self.orientationDidChange) {
         [self changeSubviewFrame];
         self.orientationDidChange = NO;
@@ -374,20 +375,20 @@ HX_PhotoEditViewControllerDelegate
     CGFloat bottomMargin = hxBottomMargin;
     CGFloat leftMargin = 0;
     CGFloat rightMargin = 0;
-    CGFloat width = [UIScreen mainScreen].bounds.size.width;
-    CGFloat height = [UIScreen mainScreen].bounds.size.height;
-    CGFloat viewWidth = [UIScreen mainScreen].bounds.size.width;
+    CGFloat width = self.view.hx_w;
+    CGFloat height = self.view.hx_h;
+    CGFloat viewWidth = self.view.hx_w;
     
     
-    if (!CGRectEqualToRect(self.view.bounds, [UIScreen mainScreen].bounds)) {
-        self.view.frame = CGRectMake(0, 0, viewWidth, height);
-    }
+//    if (!CGRectEqualToRect(self.view.bounds, [UIScreen mainScreen].bounds)) {
+//        self.view.frame = CGRectMake(0, 0, viewWidth, height);
+//    }
     if (HX_IS_IPhoneX_All &&
         (orientation == UIInterfaceOrientationLandscapeLeft || orientation == UIInterfaceOrientationLandscapeRight)) {
         bottomMargin = 21;
         leftMargin = 35;
         rightMargin = 35;
-        width = [UIScreen mainScreen].bounds.size.width - 70;
+        width = self.view.hx_w - 70;
     }
     CGFloat itemWidth = (width - (lineCount - 1)) / lineCount;
     CGFloat itemHeight = itemWidth;
@@ -654,13 +655,13 @@ HX_PhotoEditViewControllerDelegate
                         if (xReverse) {
                             tempStartX = [self panSelectGetMinXWithPoint:self.panSelectStartPoint];
                         }
-                        tempMaxX = HX_ScreenWidth - 2;
+                        tempMaxX = self.view.hx_w - 2;
                     }
                 }
             }else if (currentLine == lastLine) {
                 if (yReverse) {
                     tempStartX = [self panSelectGetMinXWithPoint:currentPoint];
-                    tempMaxX = HX_ScreenWidth - 2;
+                    tempMaxX = self.view.hx_w - 2;
                 }else {
                     tempStartX = 2;
                     if (xReverse) {
@@ -669,7 +670,7 @@ HX_PhotoEditViewControllerDelegate
                 }
             }else if (currentLine != firstLine && currentLine != lastLine) {
                 tempStartX = 2;
-                tempMaxX = HX_ScreenWidth - 2;
+                tempMaxX = self.view.hx_w - 2;
             }
             while (yReverse ? tempMaxX > tempStartX : tempStartX < tempMaxX) {
                 NSIndexPath *indexPath;

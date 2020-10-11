@@ -106,7 +106,6 @@
     self.titleCollectionView.delegate = self;
     [self.titleCollectionView registerClass:[HXPhotoEditChartletListViewCell class] forCellWithReuseIdentifier:@"HXPhotoEditChartletListViewCellId"];
     
-    self.flowLayout.itemSize = CGSizeMake(HX_ScreenWidth, HXclViewHeight + hxBottomMargin);
     self.flowLayout.minimumLineSpacing = 0;
     self.flowLayout.minimumInteritemSpacing = 0;
     
@@ -262,6 +261,9 @@
         [self removeFromSuperview];
     }];
 }
+- (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath{
+    return CGSizeMake(collectionView.hx_w, HXclViewHeight + hxBottomMargin);
+}
 - (NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView {
     if (collectionView == self.titleCollectionView) {
         return 1;
@@ -303,13 +305,13 @@
         if (self.currentSelectTitleIndexPath.item == indexPath.item) {
             return;
         }
-        [self.collectionView setContentOffset:CGPointMake(HX_ScreenWidth * indexPath.item, 0) animated:NO];
+        [self.collectionView setContentOffset:CGPointMake(collectionView.hx_w * indexPath.item, 0) animated:NO];
         return;
     }
 }
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     if (scrollView == self.collectionView) {
-        CGFloat width = HX_ScreenWidth;
+        CGFloat width = scrollView.hx_w;
         CGFloat offsetx = self.collectionView.contentOffset.x;
         if (self.models.count) {
             NSInteger currentIndex = (offsetx + width * 0.5) / width;

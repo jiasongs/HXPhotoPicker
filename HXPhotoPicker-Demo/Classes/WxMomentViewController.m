@@ -229,15 +229,15 @@
     if (!_headerView) {
         _headerView = [WxMomentHeaderView initView];
         _headerView.photoManager = self.photoManager;
-        _headerView.frame = CGRectMake(0, 0, HX_ScreenWidth, HX_ScreenWidth + 80);
+        _headerView.frame = CGRectMake(0, 0, self.view.hx_w, self.view.hx_w + 80);
     }
     return _headerView;
 }
 - (HXPhotoCustomNavigationBar *)customNavBar {
     if (!_customNavBar) {
-        _customNavBar = [[HXPhotoCustomNavigationBar alloc] initWithFrame:CGRectMake(0, 0, HX_ScreenWidth, hxNavigationBarHeight)];
+        _customNavBar = [[HXPhotoCustomNavigationBar alloc] initWithFrame:CGRectMake(0, 0, self.view.hx_w, hxNavigationBarHeight)];
         _customNavBar.tintColor = [UIColor whiteColor];
-        [_customNavBar setBackgroundImage:[UIImage hx_imageWithColor:[UIColor clearColor] havingSize:CGSizeMake(HX_ScreenWidth, hxNavigationBarHeight)] forBarMetrics:UIBarMetricsDefault];
+        [_customNavBar setBackgroundImage:[UIImage hx_imageWithColor:[UIColor clearColor] havingSize:CGSizeMake(self.view.hx_w, hxNavigationBarHeight)] forBarMetrics:UIBarMetricsDefault];
         [_customNavBar setShadowImage:[UIImage new]];
         [_customNavBar pushNavigationItem:self.navItem animated:NO];
     }
@@ -254,9 +254,9 @@
 
 - (UIView *)topView {
     if (!_topView) {
-        _topView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, HX_ScreenWidth, hxNavigationBarHeight)];
+        _topView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.hx_w, hxNavigationBarHeight)];
         [_topView.layer addSublayer:self.topMaskLayer];
-        self.topMaskLayer.frame = CGRectMake(0, 0, HX_ScreenWidth, hxNavigationBarHeight + 30);
+        self.topMaskLayer.frame = CGRectMake(0, 0, self.view.hx_w, hxNavigationBarHeight + 30);
     }
     return _topView;
 }

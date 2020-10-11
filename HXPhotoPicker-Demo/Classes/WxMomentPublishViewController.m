@@ -347,7 +347,7 @@
 
 - (HXPhotoCustomNavigationBar *)customNavBar {
     if (!_customNavBar) {
-        _customNavBar = [[HXPhotoCustomNavigationBar alloc] initWithFrame:CGRectMake(0, 0, HX_ScreenWidth, hxNavigationBarHeight)];
+        _customNavBar = [[HXPhotoCustomNavigationBar alloc] initWithFrame:CGRectMake(0, 0, self.view.hx_w, hxNavigationBarHeight)];
         _customNavBar.tintColor = [UIColor hx_colorWithHexStr:@"#333333"];
 #ifdef __IPHONE_13_0
         if (@available(iOS 13.0, *)) {
@@ -359,7 +359,7 @@
             }];
         }
 #endif
-        [_customNavBar setBackgroundImage:[UIImage hx_imageWithColor:[UIColor clearColor] havingSize:CGSizeMake(HX_ScreenWidth, hxNavigationBarHeight)] forBarMetrics:UIBarMetricsDefault];
+        [_customNavBar setBackgroundImage:[UIImage hx_imageWithColor:[UIColor clearColor] havingSize:CGSizeMake(self.view.hx_w, hxNavigationBarHeight)] forBarMetrics:UIBarMetricsDefault];
         [_customNavBar setShadowImage:[UIImage new]];
         [_customNavBar pushNavigationItem:self.navItem animated:NO];
     }

@@ -159,7 +159,7 @@ NSString *const kHXStickerViewData_movingView_superAngel = @"HXStickerViewData_m
                 [[UIApplication sharedApplication].keyWindow addSubview:weakSelf.transhView];
                 [weakSelf showTranshView];
             }else {
-                if (weakSelf.transhView.hx_y != HX_ScreenHeight - hxBottomMargin - 20 - weakSelf.transhView.hx_h ||
+                if (weakSelf.transhView.hx_y != weakSelf.hx_w - hxBottomMargin - 20 - weakSelf.transhView.hx_h ||
                     weakSelf.transhView.alpha == 0) {
                     [weakSelf showTranshView];
                 }else if (!weakSelf.transhView.superview) {
@@ -241,11 +241,11 @@ NSString *const kHXStickerViewData_movingView_superAngel = @"HXStickerViewData_m
         CGFloat ratio = 0.5f;
         CGFloat width = self.hx_w * self.screenScale;
         CGFloat height = self.hx_h * self.screenScale;
-        if (width > HX_ScreenWidth) {
-            width = HX_ScreenWidth;
+        if (width > self.hx_w) {
+            width = self.hx_w;
         }
-        if (height > HX_ScreenHeight) {
-            height = HX_ScreenHeight;
+        if (height > self.hx_h) {
+            height = self.hx_h;
         }
         scale = MIN( (ratio * width) / itemView.frame.size.width, (ratio * height) / itemView.frame.size.height);
     }else {
@@ -368,16 +368,16 @@ NSString *const kHXStickerViewData_movingView_superAngel = @"HXStickerViewData_m
     if (!_transhView) {
         _transhView = [HXPhotoEditStickerTrashView initView];
         _transhView.hx_size = CGSizeMake(160, 70);
-        _transhView.hx_centerX = HX_ScreenWidth / 2;
-        _transhView.hx_y = HX_ScreenHeight;
         _transhView.alpha = 0;
     }
     return _transhView;
 }
 - (void)showTranshView {
     self.transhViewDidRemove = NO;
+    self.transhView.hx_centerX = self.hx_w / 2;
+    self.transhView.hx_y = self.hx_h;
     [UIView animateWithDuration:0.25 animations:^{
-        self.transhView.hx_y = HX_ScreenHeight - hxBottomMargin - 20 - self.transhView.hx_h;
+        self.transhView.hx_y = self.hx_h - hxBottomMargin - 20 - self.transhView.hx_h;
         self.transhView.alpha = 1;
     }];
 }
@@ -385,7 +385,7 @@ NSString *const kHXStickerViewData_movingView_superAngel = @"HXStickerViewData_m
     self.transhViewIsVisible = NO;
     self.transhViewDidRemove = YES;
     [UIView animateWithDuration:0.25 animations:^{
-        self.transhView.hx_y = HX_ScreenHeight;
+        self.transhView.hx_y = self.hx_h;
         self.transhView.alpha = 0;
         self.selectItemView.alpha = 1;
     } completion:^(BOOL finished) {
