@@ -22,16 +22,6 @@
 #import "SDAnimatedImageView+WebCache.h"
 #endif
 
-#if __has_include(<YYWebImage/YYWebImage.h>)
-#import <YYWebImage/YYWebImage.h>
-#elif __has_include("YYWebImage.h")
-#import "YYWebImage.h"
-#elif __has_include(<YYKit/YYKit.h>)
-#import <YYKit/YYKit.h>
-#elif __has_include("YYKit.h")
-#import "YYKit.h"
-#endif
-
 @interface HXPhoto3DTouchViewController : UIViewController
 @property (strong, nonatomic) HXPhotoModel *model;
 @property (strong, nonatomic) UIImage *image;

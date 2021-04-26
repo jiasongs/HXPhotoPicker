@@ -244,7 +244,8 @@
 }
 
 - (HXCustomNavigationController *)hx_customNavigationController {
-    if (self.navigationController isKindOfClass:NSClassFromString(@"HXCustomNavigationController")) {
+    /// ruanmei
+    if ([self.navigationController isKindOfClass:HXCustomNavigationController.class]) {
         return (HXCustomNavigationController *)self.navigationController;
     }
     return nil;
