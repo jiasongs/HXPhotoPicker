@@ -29,12 +29,8 @@
         [self.collectionView setContentInsetAdjustmentBehavior:UIScrollViewContentInsetAdjustmentNever];
     }
     UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
-<<<<<<< HEAD
-    if (orientation == UIInterfaceOrientationPortrait || orientation == UIInterfaceOrientationPortraitUpsideDown) {
-=======
     if (orientation == UIInterfaceOrientationPortrait || orientation == UIInterfaceOrientationPortraitUpsideDown || HX_UI_IS_IPAD) {
         width = (HX_ScreenWidth - 5 * 20) / 4;
->>>>>>> c5a80ff4664b6e59890d1eed303bebc0fee6e468
         self.flowLayout.sectionInset = UIEdgeInsetsMake(75, 20, 20, 20);
     }else {
         self.flowLayout.sectionInset = UIEdgeInsetsMake(75, 20 + hxTopMargin, 20, 20 + hxTopMargin);
