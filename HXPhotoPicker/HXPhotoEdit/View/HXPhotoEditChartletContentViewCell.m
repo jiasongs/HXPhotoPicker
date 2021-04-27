@@ -28,13 +28,16 @@
     if (@available(iOS 11.0, *)){
         [self.collectionView setContentInsetAdjustmentBehavior:UIScrollViewContentInsetAdjustmentNever];
     }
+    CGFloat width;
     UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
     if (orientation == UIInterfaceOrientationPortrait || orientation == UIInterfaceOrientationPortraitUpsideDown || HX_UI_IS_IPAD) {
         width = (HX_ScreenWidth - 5 * 20) / 4;
         self.flowLayout.sectionInset = UIEdgeInsetsMake(75, 20, 20, 20);
     }else {
         self.flowLayout.sectionInset = UIEdgeInsetsMake(75, 20 + hxTopMargin, 20, 20 + hxTopMargin);
+        width = ((HX_ScreenWidth - hxTopMargin * 2) - 9 * 20) / 8;
     }
+    self.flowLayout.itemSize = CGSizeMake(width, width);
     self.flowLayout.minimumLineSpacing = 20;
     self.flowLayout.minimumInteritemSpacing = 20;
     
