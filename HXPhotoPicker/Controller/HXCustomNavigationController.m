@@ -43,8 +43,8 @@
     if (manager.configuration.albumShowMode == HXPhotoAlbumShowModeDefault) {
         HXAlbumListViewController *vc = [[HXAlbumListViewController alloc] initWithManager:manager];
         self = [super initWithRootViewController:vc];
-//        self.modalPresentationStyle = UIModalPresentationOverFullScreen;
-//        self.modalPresentationCapturesStatusBarAppearance = YES;
+        self.modalPresentationStyle = UIModalPresentationOverFullScreen;
+        self.modalPresentationCapturesStatusBarAppearance = YES;
         if (self) {
             self.hx_delegate = delegate;
             self.manager = manager;
@@ -59,8 +59,8 @@
         HXPhotoViewController *vc = [[HXPhotoViewController alloc] init];
         vc.manager = manager;
         self = [super initWithRootViewController:vc];
-//        self.modalPresentationStyle = UIModalPresentationOverFullScreen;
-//        self.modalPresentationCapturesStatusBarAppearance = YES;
+        self.modalPresentationStyle = UIModalPresentationOverFullScreen;
+        self.modalPresentationCapturesStatusBarAppearance = YES;
         if (self) {
             self.hx_delegate = delegate;
             self.manager = manager;
