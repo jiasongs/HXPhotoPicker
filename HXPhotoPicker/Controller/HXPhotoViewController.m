@@ -1,9 +1,9 @@
 //
 //  HXPhotoViewController.m
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 2017/10/14.
-//  Copyright © 2017年 洪欣. All rights reserved.
+//  Created by Silence on 2017/10/14.
+//  Copyright © 2017年 Silence. All rights reserved.
 //
 
 #import "HXPhotoViewController.h"
@@ -34,6 +34,7 @@
 #import "HXPhotoEdit.h"
 #import "HX_PhotoEditViewController.h"
 #import "UIColor+HXExtension.h"
+#import "HXAssetManager.h"
 
 @interface HXPhotoViewController ()
 <
@@ -136,9 +137,15 @@ HX_PhotoEditViewControllerDelegate
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     [self changeStatusBarStyle];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored"-Wdeprecated-declarations"
     [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationFade];
+#pragma clang diagnostic pop
     if (self.needChangeViewFrame) {
         self.needChangeViewFrame = NO;
+    }
+    if (self.manager.viewWillAppear) {
+        self.manager.viewWillAppear(self);
     }
 }
 - (void)viewDidAppear:(BOOL)animated {
@@ -148,10 +155,24 @@ HX_PhotoEditViewControllerDelegate
             [self.cameraCell starRunning];
         }
     }
+    if (self.manager.viewDidAppear) {
+        self.manager.viewDidAppear(self);
+    }
 }
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
+    if (self.manager.viewWillDisappear) {
+        self.manager.viewWillDisappear(self);
+    }
 }
+- (void)viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
+    if (self.manager.viewDidDisappear) {
+        self.manager.viewDidDisappear(self);
+    }
+}
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored"-Wdeprecated-declarations"
 - (void)changeStatusBarStyle {
     if ([HXPhotoCommon photoCommon].isDark) {
         [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent animated:YES];
@@ -159,6 +180,7 @@ HX_PhotoEditViewControllerDelegate
     }
     [[UIApplication sharedApplication] setStatusBarStyle:self.manager.configuration.statusBarStyle animated:YES];
 }
+#pragma clang diagnostic pop
 - (void)viewDidLayoutSubviews {
     [super viewDidLayoutSubviews];
     [self changeSubviewFrame];
@@ -186,7 +208,7 @@ HX_PhotoEditViewControllerDelegate
         [self authorizationHandler];
         HXWeakSelf
         self.hx_customNavigationController.reloadAsset = ^(BOOL initialAuthorization){
-            if (initialAuthorization) {
+            if (initialAuthorization == YES) {
                 if (weakSelf.manager.configuration.navigationBar) {
                     weakSelf.manager.configuration.navigationBar(weakSelf.navigationController.navigationBar, weakSelf);
                 }
@@ -344,7 +366,7 @@ HX_PhotoEditViewControllerDelegate
     CGFloat albumHeight = cellHeight * count;
     UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
     CGFloat albumMaxHeight;
-    if (orientation == UIInterfaceOrientationPortrait || orientation == UIInterfaceOrientationPortraitUpsideDown) {
+    if (orientation == UIInterfaceOrientationPortrait || orientation == UIInterfaceOrientationPortraitUpsideDown || HX_UI_IS_IPAD) {
         albumMaxHeight = self.manager.configuration.popupTableViewHeight;
     }else {
         albumMaxHeight = self.manager.configuration.popupTableViewHorizontalHeight;
@@ -359,8 +381,9 @@ HX_PhotoEditViewControllerDelegate
     UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
     CGFloat navBarHeight = hxNavigationBarHeight;
     NSInteger lineCount = self.manager.configuration.rowCount;
-    if (orientation == UIInterfaceOrientationPortrait || orientation == UIInterfaceOrientationPortraitUpsideDown) {
-        navBarHeight = hxNavigationBarHeight;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored"-Wdeprecated-declarations"
+    if (orientation == UIInterfaceOrientationPortrait || orientation == UIInterfaceOrientationPortraitUpsideDown || HX_UI_IS_IPAD) {
         lineCount = self.manager.configuration.rowCount;
         [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationFade];
     }else if (orientation == UIInterfaceOrientationLandscapeRight || orientation == UIInterfaceOrientationLandscapeLeft){
@@ -372,6 +395,7 @@ HX_PhotoEditViewControllerDelegate
         }
         lineCount = self.manager.configuration.horizontalRowCount;
     }
+#pragma clang diagnostic pop
     CGFloat bottomMargin = hxBottomMargin;
     CGFloat leftMargin = 0;
     CGFloat rightMargin = 0;
@@ -531,9 +555,7 @@ HX_PhotoEditViewControllerDelegate
 - (void)scrollToPoint:(HXPhotoViewCell *)cell rect:(CGRect)rect {
     UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
     CGFloat navBarHeight = hxNavigationBarHeight;
-    if (orientation == UIInterfaceOrientationPortrait || orientation == UIInterfaceOrientationPortraitUpsideDown) {
-        navBarHeight = hxNavigationBarHeight;
-    }else if (orientation == UIInterfaceOrientationLandscapeRight || orientation == UIInterfaceOrientationLandscapeLeft){
+    if (orientation == UIInterfaceOrientationLandscapeRight || orientation == UIInterfaceOrientationLandscapeLeft){
         if ([UIApplication sharedApplication].statusBarHidden) {
             navBarHeight = self.navigationController.navigationBar.hx_h;
         }else {
@@ -552,10 +574,13 @@ HX_PhotoEditViewControllerDelegate
         return;
     }
     if (panGesture.state == UIGestureRecognizerStateBegan) {
+        // 获取起始点
         self.panSelectStartPoint = [panGesture locationInView:self.collectionView];
         NSIndexPath *indexPath = [self.collectionView indexPathForItemAtPoint:self.panSelectStartPoint];
+        // 是否可以选择视频
         BOOL canSelectVideo = self.manager.videoSelectedType != HXPhotoManagerVideoSelectedTypeSingle;
         if (indexPath) {
+            // 起始点在cell上
             HXPhotoModel *firstModel = self.allArray[indexPath.item];
             if (firstModel.subType == HXPhotoModelMediaSubTypeVideo) {
                 if (canSelectVideo) {
@@ -565,6 +590,7 @@ HX_PhotoEditViewControllerDelegate
                 self.currentPanSelectType = !firstModel.selected;
             }
         }else {
+            // 起始点不在cell上
             self.currentPanSelectType = -1;
         }
     }else if (panGesture.state == UIGestureRecognizerStateChanged) {
@@ -573,6 +599,7 @@ HX_PhotoEditViewControllerDelegate
         NSInteger lastLine = 0;
         NSIndexPath *firstIndexPath = [self.collectionView indexPathForItemAtPoint:self.panSelectStartPoint];
         if (!firstIndexPath) {
+            // 起始点不在cell上直接不可滑动选择
             return;
         }
         NSIndexPath *lastIndexPath = [self.collectionView indexPathForItemAtPoint:currentPoint];
@@ -599,9 +626,11 @@ HX_PhotoEditViewControllerDelegate
         CGFloat maxX;
         BOOL xReverse = NO;
         if (currentPoint.x > self.panSelectStartPoint.x) {
+            // 向右
             maxX = [self panSelectGetMaxXWithPoint:currentPoint];
             startX = [self panSelectGetMinXWithPoint:self.panSelectStartPoint];
         }else {
+            // 向左
             xReverse = YES;
             maxX = [self panSelectGetMaxXWithPoint:self.panSelectStartPoint];
             startX = [self panSelectGetMinXWithPoint:currentPoint];
@@ -610,9 +639,11 @@ HX_PhotoEditViewControllerDelegate
         CGFloat startY;
         BOOL yReverse = NO;
         if (currentPoint.y > self.panSelectStartPoint.y) {
+            // 向下
             maxY = [self panSelectGetMaxYWithPoint:currentPoint];
             startY = [self panSelectGetMinYWithPoint:self.panSelectStartPoint];
         }else {
+            // 向上
             yReverse = YES;
             maxY = [self panSelectGetMaxYWithPoint:self.panSelectStartPoint];
             startY = [self panSelectGetMinYWithPoint:currentPoint];
@@ -727,11 +758,6 @@ HX_PhotoEditViewControllerDelegate
                 self.currentPanSelectType = !firstModel.selected;
             }
         }
-        
-        BOOL maskLayerHidden = NO;
-        if (self.manager.videoSelectedType == HXPhotoManagerVideoSelectedTypeSingle) {
-            maskLayerHidden = self.manager.selectedPhotoCount ? YES : NO;
-        }
         NSMutableArray *reloadSelectArray = [NSMutableArray array];
         for (NSIndexPath *indexPath in indexPaths) {
             HXPhotoModel *model = self.allArray[indexPath.item];
@@ -752,8 +778,15 @@ HX_PhotoEditViewControllerDelegate
             }else if (self.currentPanSelectType == 1) {
                 // 选择
                 if (!model.selected) {
+                    if (model.isICloud) {
+                        // 是iCloud上的资源就过滤掉
+                        continue;
+                    }
+                    // 是否可以选择
                     NSString *str = [self.manager maximumOfJudgment:model];
                     if (!str) {
+                        HXPhotoViewCell *cell = (HXPhotoViewCell *)[self.collectionView cellForItemAtIndexPath:indexPath];
+                        model.thumbPhoto = cell.imageView.image;
                         [self.manager beforeSelectedListAddPhotoModel:model];
                         if (![reloadSelectArray containsObject:indexPath]) {
                             [reloadSelectArray addObject:indexPath];
@@ -933,7 +966,8 @@ HX_PhotoEditViewControllerDelegate
 - (void)startGetAllPhotoModel {
     HXWeakSelf
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        [self.manager getPhotoListWithAlbumModel:self.albumModel complete:^(NSMutableArray *allList, NSMutableArray *previewList, HXPhotoModel *firstSelectModel, HXAlbumModel *albumModel) {
+        [self.manager getPhotoListWithAlbumModel:self.albumModel
+                                        complete:^(NSMutableArray * _Nullable allList, NSMutableArray * _Nullable previewList, NSUInteger photoCount, NSUInteger videoCount, HXPhotoModel * _Nullable firstSelectModel, HXAlbumModel * _Nullable albumModel) {
             if ((weakSelf.albumModel != albumModel && !weakSelf.assetDidChanged) ||
                 !weakSelf) {
                 return;
@@ -942,13 +976,15 @@ HX_PhotoEditViewControllerDelegate
             if (weakSelf.collectionViewReloadCompletion) {
                 return ;
             }
+            weakSelf.photoCount = photoCount + weakSelf.manager.cameraPhotoCount;
+            weakSelf.videoCount = videoCount + weakSelf.manager.cameraVideoCount;
             [weakSelf setPhotoModelsWithAllList:allList previewList:previewList firstSelectModel:firstSelectModel];
         }];
     });
 }
-- (void)setPhotoModelsWithAllList:(NSMutableArray *)allList previewList:(NSMutableArray *)previewList firstSelectModel:(HXPhotoModel *)firstSelectModel {
-    self.photoCount = [self.albumModel.assetResult countOfAssetsWithMediaType:PHAssetMediaTypeImage] + self.manager.cameraPhotoCount;
-    self.videoCount = [self.albumModel.assetResult countOfAssetsWithMediaType:PHAssetMediaTypeVideo] + self.manager.cameraVideoCount;
+- (void)setPhotoModelsWithAllList:(NSMutableArray *)allList
+                      previewList:(NSMutableArray *)previewList
+                 firstSelectModel:(HXPhotoModel *)firstSelectModel {
     self.collectionViewReloadCompletion = YES;
     
     self.allArray = allList.mutableCopy;
@@ -964,9 +1000,11 @@ HX_PhotoEditViewControllerDelegate
 }
 - (void)reloadCollectionViewWithFirstSelectModel:(HXPhotoModel *)firstSelectModel {
     dispatch_async(dispatch_get_main_queue(), ^{
-        [self.hx_customNavigationController.view hx_handleLoading];
         if (!self.firstOn) {
             self.cellCanSetModel = NO;
+            [self.hx_customNavigationController.view hx_handleLoading];
+        }else {
+            [self.hx_customNavigationController.view hx_handleLoading:NO];
         }
         [self.collectionView reloadData];
         [self collectionViewReloadFinishedWithFirstSelectModel:firstSelectModel];
@@ -1040,6 +1078,9 @@ HX_PhotoEditViewControllerDelegate
         if (firstSelectModel) {
             scrollIndexPath = [NSIndexPath indexPathForItem:[self.allArray indexOfObject:firstSelectModel] inSection:0];
             position = UICollectionViewScrollPositionCenteredVertically;
+        }else {
+            scrollIndexPath = [NSIndexPath indexPathForItem:0 inSection:0];
+            position = UICollectionViewScrollPositionTop;
         }
     }
     if (scrollIndexPath) {
@@ -1069,6 +1110,12 @@ HX_PhotoEditViewControllerDelegate
     if (!self.manager.configuration.singleSelected) {
         [self.manager beforeListAddCameraTakePicturesModel:model];
     }
+    if ([HXPhotoTools authorizationStatusIsLimited]) {
+        return;
+    }
+    if (model.asset) {
+        [self.manager addTempCameraAssetModel:model];
+    }
     if (model.type != HXPhotoModelMediaTypeCameraPhoto &&
         model.type != HXPhotoModelMediaTypeCameraVideo) {
         HXAlbumModel *albumModel = self.albumView.albumModelArray.firstObject;
@@ -1081,7 +1128,11 @@ HX_PhotoEditViewControllerDelegate
         self.photoCount++;
     }else if (model.subType == HXPhotoModelMediaSubTypeVideo) {
         self.videoCount++;
-    }    [self collectionViewAddModel:model beforeModel:nil];
+    }
+    if (self.albumModel.realCount != self.photoCount + self.videoCount) {
+        self.albumModel.realCount = self.photoCount + self.videoCount;
+    }
+    [self collectionViewAddModel:model beforeModel:nil];
 }
 - (void)collectionViewAddModel:(HXPhotoModel *)model beforeModel:(HXPhotoModel *)beforeModel {
     
@@ -1240,9 +1291,9 @@ HX_PhotoEditViewControllerDelegate
                             weakSelf.manager.configuration.shouldUseCamera(weakSelf, cameraType, weakSelf.manager);
                         }
                         weakSelf.manager.configuration.useCameraComplete = ^(HXPhotoModel *model) {
-                            if (model.videoDuration < weakSelf.manager.configuration.videoMinimumSelectDuration) {
+                            if (round(model.videoDuration) < weakSelf.manager.configuration.videoMinimumSelectDuration) {
                                 [weakSelf.view hx_showImageHUDText:[NSString stringWithFormat:[NSBundle hx_localizedStringForKey:@"视频少于%ld秒，无法选择"], weakSelf.manager.configuration.videoMinimumSelectDuration]];
-                            }else if (model.videoDuration >= weakSelf.manager.configuration.videoMaximumSelectDuration + 1) {
+                            }else if (round(model.videoDuration) >= weakSelf.manager.configuration.videoMaximumSelectDuration + 1) {
                                 [weakSelf.view hx_showImageHUDText:[NSString stringWithFormat:[NSBundle hx_localizedStringForKey:@"视频大于%ld秒，无法选择"], weakSelf.manager.configuration.videoMaximumSelectDuration]];
                             }
                             [weakSelf customCameraViewController:nil didDone:model];
@@ -1533,7 +1584,8 @@ HX_PhotoEditViewControllerDelegate
 }
 - (void)photoViewCell:(HXPhotoViewCell *)cell didSelectBtn:(UIButton *)selectBtn {
     if (selectBtn.selected) {
-        if (cell.model.type != HXPhotoModelMediaTypeCameraVideo && cell.model.type != HXPhotoModelMediaTypeCameraPhoto) {
+        if (cell.model.type != HXPhotoModelMediaTypeCameraVideo &&
+            cell.model.type != HXPhotoModelMediaTypeCameraPhoto) {
             cell.model.thumbPhoto = nil;
             cell.model.previewPhoto = nil;
         }
@@ -1551,8 +1603,10 @@ HX_PhotoEditViewControllerDelegate
             }
             return;
         }
-        if (cell.model.type != HXPhotoModelMediaTypeCameraVideo && cell.model.type != HXPhotoModelMediaTypeCameraPhoto) {
+        if (cell.model.type != HXPhotoModelMediaTypeCameraVideo &&
+            cell.model.type != HXPhotoModelMediaTypeCameraPhoto) {
             cell.model.thumbPhoto = cell.imageView.image;
+            cell.model.previewPhoto = cell.imageView.image;
         }
         [self.manager beforeSelectedListAddPhotoModel:cell.model];
         cell.selectMaskLayer.hidden = NO;
@@ -1663,7 +1717,10 @@ HX_PhotoEditViewControllerDelegate
 #pragma mark - < HX_PhotoEditViewControllerDelegate >
 - (void)photoEditingController:(HX_PhotoEditViewController *)photoEditingVC didFinishPhotoEdit:(HXPhotoEdit *)photoEdit photoModel:(HXPhotoModel *)photoModel {
     if (self.manager.configuration.singleSelected) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored"-Wdeprecated-declarations"
         [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationFade];
+#pragma clang diagnostic pop
         self.isNewEditDismiss = YES;
         [self.manager beforeSelectedListAddPhotoModel:photoModel];
         [self photoBottomViewDidDoneBtn];
@@ -1732,21 +1789,21 @@ HX_PhotoEditViewControllerDelegate
         if (self.manager.configuration.hideOriginalBtn) {
             requestOriginal = self.manager.configuration.requestOriginalImage;
         }
-        if (requestOriginal) {
+//        if (requestOriginal) {
             [self.manager.selectedArray hx_requestImageSeparatelyWithOriginal:requestOriginal completion:^(NSArray<UIImage *> * _Nullable imageArray, NSArray<HXPhotoModel *> * _Nullable errorArray) {
                 if (!weakSelf) {
                     return;
                 }
                 [weakSelf afterFinishingGetVideoURL];
             }];
-        }else {
-            [self.manager.selectedArray hx_requestImageWithOriginal:requestOriginal completion:^(NSArray<UIImage *> * _Nullable imageArray, NSArray<HXPhotoModel *> * _Nullable errorArray) {
-                if (!weakSelf) {
-                    return;
-                }
-                [weakSelf afterFinishingGetVideoURL];
-            }];
-        }
+//        }else {
+//            [self.manager.selectedArray hx_requestImageWithOriginal:requestOriginal completion:^(NSArray<UIImage *> * _Nullable imageArray, NSArray<HXPhotoModel *> * _Nullable errorArray) {
+//                if (!weakSelf) {
+//                    return;
+//                }
+//                [weakSelf afterFinishingGetVideoURL];
+//            }];
+//        }
         return;
     }
     [self dismissVC];
@@ -1956,7 +2013,12 @@ HX_PhotoEditViewControllerDelegate
     return _authorizationLb;
 }
 - (void)goSetup {
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
+    NSURL *url = [NSURL URLWithString:UIApplicationOpenSettingsURLString];
+    if (@available(iOS 10.0, *)) {
+        [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+    }else {
+        [[UIApplication sharedApplication] openURL:url];
+    }
 }
 - (UIView *)albumBgView {
     if (!_albumBgView) {
@@ -1979,6 +2041,7 @@ HX_PhotoEditViewControllerDelegate
         _albumView = [[HXAlbumlistView alloc] initWithManager:self.manager];
         HXWeakSelf
         _albumView.didSelectRowBlock = ^(HXAlbumModel *model) {
+            [weakSelf.hx_customNavigationController clearAssetCache];
             if (weakSelf.manager.configuration.photoListChangeTitleViewSelected) {
                 weakSelf.manager.configuration.photoListChangeTitleViewSelected(NO);
                 [weakSelf albumTitleViewDidAction:NO];
@@ -2019,14 +2082,33 @@ HX_PhotoEditViewControllerDelegate
     }
     if (selected) {
         if (!self.firstDidAlbumTitleView) {
+            HXAlbumModel *albumMd = self.albumView.albumModelArray.firstObject;
+            if (albumMd.realCount != self.photoCount + self.videoCount) {
+                albumMd.realCount = self.photoCount + self.videoCount;
+                HXPhotoModel *photoModel = self.previewArray.lastObject;
+                albumMd.realCoverAsset = photoModel.asset;
+                albumMd.needReloadCount = YES;
+            }
             [self.albumView refreshCamearCount];
             self.firstDidAlbumTitleView = YES;
+        }else {
+            BOOL needReload = self.albumModel.realCount != self.photoCount + self.videoCount;
+            if (!needReload && self.albumModel.realCount == 0) {
+                needReload = YES;
+            }
+            if (needReload) {
+                self.albumModel.realCount = self.photoCount + self.videoCount;
+                HXPhotoModel *photoModel = self.previewArray.lastObject;
+                self.albumModel.realCoverAsset = photoModel.asset;
+                self.albumModel.needReloadCount = YES;
+                [self.albumView reloadAlbumAssetCountWithAlbumModel:self.albumModel];
+            }
         }
         self.albumBgView.hidden = NO;
         self.albumBgView.alpha = 0;
         UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
         CGFloat navBarHeight = hxNavigationBarHeight;
-        if (orientation == UIInterfaceOrientationPortrait || orientation == UIInterfaceOrientationPortraitUpsideDown) {
+        if (orientation == UIInterfaceOrientationPortrait || orientation == UIInterfaceOrientationPortraitUpsideDown || HX_UI_IS_IPAD) {
             navBarHeight = hxNavigationBarHeight;
         }else if (orientation == UIInterfaceOrientationLandscapeRight || orientation == UIInterfaceOrientationLandscapeLeft){
             if ([UIApplication sharedApplication].statusBarHidden) {
@@ -2205,7 +2287,11 @@ HX_PhotoEditViewControllerDelegate
                         if (weakSelf.cameraSelected) {
                             [UIView animateWithDuration:0.25 animations:^{
                                 weakSelf.tempCameraView.alpha = 0;
-                                weakSelf.effectView.effect = nil;
+                                if (HX_IOS9Later) {
+                                    [weakSelf.effectView setEffect:nil];
+                                }else {
+                                    weakSelf.effectView.alpha = 0;
+                                }
                             } completion:^(BOOL finished) {
                                 [weakSelf.tempCameraView removeFromSuperview];
                                 [weakSelf.effectView removeFromSuperview];
@@ -2426,7 +2512,6 @@ HX_PhotoEditViewControllerDelegate
                 self.imageView.image = model.thumbPhoto;
             }
             if (model.networkPhotoUrl) {
-                self.progressView.hidden = model.downloadComplete;
                 CGFloat progress = (CGFloat)model.receivedSize / model.expectedSize;
                 self.progressView.progress = progress;
                 if (model.downloadComplete && !model.downloadError) {
@@ -2441,6 +2526,7 @@ HX_PhotoEditViewControllerDelegate
                         completion(self);
                     }
                 }else {
+                    self.progressView.hidden = NO;
                     [self.imageView hx_setImageWithModel:model original:NO progress:^(CGFloat progress, HXPhotoModel *model) {
                         if (weakSelf.model == model) {
                             weakSelf.progressView.progress = progress;
@@ -2745,7 +2831,7 @@ HX_PhotoEditViewControllerDelegate
     self.maskView.frame = self.bounds;
     self.stateLb.frame = CGRectMake(0, self.hx_h - 18, self.hx_w - 7, 18);
     self.bottomMaskLayer.frame = CGRectMake(0, self.hx_h - 25, self.hx_w, 27);
-//    [self setSelectBtnFrame];
+    [self setSelectBtnFrame];
     self.selectMaskLayer.frame = self.bounds;
     self.iCloudMaskLayer.frame = self.bounds;
     self.iCloudIcon.hx_x = self.hx_w - 3 - self.iCloudIcon.hx_w;
@@ -3137,7 +3223,7 @@ HX_PhotoEditViewControllerDelegate
             }
         }else {
             [self.doneBtn setTitle:[NSString stringWithFormat:@"%@(%ld)",[NSBundle hx_localizedStringForKey:@"完成"],(long)selectCount] forState:UIControlStateNormal];
-        }
+        } 
     }
     UIColor *themeColor = self.manager.configuration.bottomDoneBtnBgColor ?: self.manager.configuration.themeColor;
     UIColor *doneBtnDarkBgColor = self.manager.configuration.bottomDoneBtnDarkBgColor ?: [UIColor colorWithRed:0.2 green:0.2 blue:0.2 alpha:1];

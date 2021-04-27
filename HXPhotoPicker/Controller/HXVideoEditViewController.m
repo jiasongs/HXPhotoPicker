@@ -1,9 +1,9 @@
 //
 //  HXVideoEditViewController.m
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 2017/12/31.
-//  Copyright © 2017年 洪欣. All rights reserved.
+//  Created by Silence on 2017/12/31.
+//  Copyright © 2017年 Silence. All rights reserved.
 //
 
 #import "HXVideoEditViewController.h"
@@ -40,7 +40,10 @@ HXVideoEditBottomViewDelegate
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     [self.navigationController setNavigationBarHidden:YES];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored"-Wdeprecated-declarations"
     [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationFade];
+#pragma clang diagnostic pop
 }
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
@@ -198,11 +201,7 @@ HXVideoEditBottomViewDelegate
                 }
             } downloadFailure:^(NSError * _Nullable error, NSURL * _Nullable videoURL) {
                 [weakSelf.view hx_handleLoading];
-                hx_showAlert(weakSelf, [NSBundle hx_localizedStringForKey:@"获取视频失败!"], nil, [NSBundle hx_localizedStringForKey:@"返回"], [NSBundle hx_localizedStringForKey:@"获取"], ^{
-                    [weakSelf videoEditBottomViewDidCancelClick:nil];
-                }, ^{
-                    [weakSelf getVideo];
-                });
+                [weakSelf showErrorAlert];
             }];
             return;
         }
@@ -222,18 +221,22 @@ HXVideoEditBottomViewDelegate
             }
         } failed:^(NSDictionary *info, HXPhotoModel *model) {
             [weakSelf.view hx_handleLoading];
-            hx_showAlert(weakSelf, [NSBundle hx_localizedStringForKey:@"获取视频失败!"], nil, [NSBundle hx_localizedStringForKey:@"返回"], [NSBundle hx_localizedStringForKey:@"获取"], ^{
-                [weakSelf videoEditBottomViewDidCancelClick:nil];
-            }, ^{
-                [weakSelf getVideo];
-            });
+            [weakSelf showErrorAlert];
         }];
     }
+}
+- (void)showErrorAlert {
+    HXWeakSelf
+    hx_showAlert(weakSelf, [NSBundle hx_localizedStringForKey:@"获取视频失败!"], nil, [NSBundle hx_localizedStringForKey:@"返回"], [NSBundle hx_localizedStringForKey:@"获取"], ^{
+        [weakSelf videoEditBottomViewDidCancelClick:nil];
+    }, ^{
+        [weakSelf getVideo];
+    });
 }
 - (void)showCancelAlert {
     if (self.transitionCompletion && !self.requestComplete) {
         HXWeakSelf
-        hx_showAlert(self, [NSBundle hx_localizedStringForKey:@"确定取消吗?"], nil, [NSBundle hx_localizedStringForKey:@"取消"], [NSBundle hx_localizedStringForKey:@"继续"], ^{
+        hx_showAlert(self, [NSBundle hx_localizedStringForKey:@"是否取消吗?"], nil, [NSBundle hx_localizedStringForKey:@"取消"], [NSBundle hx_localizedStringForKey:@"继续"], ^{
             [weakSelf videoEditBottomViewDidCancelClick:nil];
         }, nil);
     }
@@ -1060,7 +1063,7 @@ HXEditFrameViewDelegate
     left.size.width += hxImageWidth * 4;
     CGRect right = self.rightImageView.frame;
     right.origin.x -= hxImageWidth * 2;
-    right.size.width = hxImageWidth * 4;
+    right.size.width += hxImageWidth * 4;
     
     if (CGRectContainsPoint(left, point)) {
         return self.leftImageView;
@@ -1080,12 +1083,11 @@ HXEditFrameViewDelegate
     CGRect rct = self.validRect;
     const CGFloat W = self.hx_w;
     CGFloat minX = hxValidRectX + hxImageWidth;
-    CGFloat maxX = W;
     
     switch (panGesture.view.tag) {
         case 0: {
             //left
-            maxX = self.rightImageView.hx_x - self.minWidth;
+            CGFloat maxX = self.rightImageView.hx_x - self.minWidth;
             point.x = MAX(minX, MIN(point.x, maxX));
             point.y = 0;
             
@@ -1096,7 +1098,7 @@ HXEditFrameViewDelegate
         case 1:  {
             //right
             minX = CGRectGetMaxX(self.leftImageView.frame) + self.minWidth;
-            maxX = W - hxValidRectX - hxImageWidth;
+            CGFloat  maxX = W - hxValidRectX - hxImageWidth;
             
             point.x = MAX(minX, MIN(point.x, maxX));
             point.y = 0;

@@ -1,9 +1,9 @@
 //
 //  HXAlbumlistView.m
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 2018/9/26.
-//  Copyright © 2018年 洪欣. All rights reserved.
+//  Created by Silence on 2018/9/26.
+//  Copyright © 2018年 Silence. All rights reserved.
 //
 
 #import "HXAlbumlistView.h"
@@ -12,6 +12,7 @@
 #import "UIButton+HXExtension.h"
 #import "UIView+HXExtension.h"
 #import "UIColor+HXExtension.h"
+#import "HXAssetManager.h"
 
 @interface HXAlbumlistView ()<UITableViewDataSource, UITableViewDelegate>
 @property (assign, nonatomic) BOOL cellCanSetModel;
@@ -80,7 +81,14 @@
         [self cellSetModelData:self.tableVisibleCells.firstObject];
     });
 }
-
+- (void)reloadAlbumAssetCountWithAlbumModel:(HXAlbumModel *)model {
+    if (!model || !self.albumModelArray.count) {
+        return;
+    }
+    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:model.index inSection:0];
+    [self.tableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:0];
+    [self.tableView selectRowAtIndexPath:indexPath animated:YES scrollPosition:UITableViewScrollPositionMiddle];
+}
 - (void)cellSetModelData:(HXAlbumlistViewCell *)cell {
     if ([cell isKindOfClass:[HXAlbumlistViewCell class]]) {
         HXWeakSelf
@@ -251,18 +259,24 @@
     }
 }
 - (void)getAlbumImageWithCompletion:(void (^)(UIImage *image, PHAsset *asset))completion {
-    NSInteger photoCount = self.model.count;
-
-    self.countLb.text = @(photoCount + self.model.cameraCount).stringValue;
+    NSInteger photoCount = self.model.count + self.model.cameraCount;
+    PHAsset *coverAsset = self.model.assetResult.lastObject;
+    if (self.model.needReloadCount && photoCount != self.model.realCount) {
+        coverAsset = self.model.realCoverAsset;
+        photoCount = self.model.realCount;
+    }
+    self.countLb.text = @(photoCount).stringValue;
     HXWeakSelf
-    self.requestId = [HXPhotoModel requestThumbImageWithPHAsset:self.model.assetResult.lastObject width:self.hx_h * 1.4 completion:^(UIImage *image, PHAsset *asset) {
-        if (asset == weakSelf.model.assetResult.lastObject) {
-            weakSelf.coverView.image = image;
-        }
-        if (completion) {
-            completion(image, asset);
-        }
-    }]; 
+    if (coverAsset) {
+        self.requestId = [HXAssetManager requestThumbnailImageForAsset:coverAsset targetWidth:self.hx_h * 1.4 completion:^(UIImage * _Nonnull result, NSDictionary<NSString *,id> * _Nonnull info) {
+            if (weakSelf.model.assetResult.lastObject == coverAsset && result) {
+                weakSelf.coverView.image = result;
+            }
+            if (completion && result) {
+                completion(result, coverAsset);
+            }
+        }];
+    }
 }
 - (void)setConfiguration:(HXPhotoConfiguration *)configuration {
     _configuration = configuration;
@@ -472,10 +486,10 @@
 }
 - (CGFloat)getTextWidth:(CGFloat)margin {
     CGFloat maxWidth = [UIScreen mainScreen].bounds.size.width - margin - 10 - 5 - self.arrowIcon.hx_w - (30 - self.arrowIcon.hx_h) / 2;
-    CGFloat textWidth = self.titleLb.hx_getTextWidth;
-    if (textWidth > maxWidth) {
-        textWidth = maxWidth;
-    }
+//    CGFloat textWidth = self.titleLb.hx_getTextWidth;
+//    if (textWidth > maxWidth) {
+//        textWidth = maxWidth;
+//    }
     return maxWidth;
 }
 - (void)setSubViewFrame {

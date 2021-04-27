@@ -1,9 +1,9 @@
 //
 //  HXPreviewLivePhotoView.m
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 2019/11/15.
-//  Copyright © 2019 洪欣. All rights reserved.
+//  Created by Silence on 2019/11/15.
+//  Copyright © 2019 Silence. All rights reserved.
 //
 
 #import "HXPreviewLivePhotoView.h"
@@ -143,7 +143,9 @@
             weakSelf.downloadICloudAssetComplete();
         }
         weakSelf.livePhotoView.livePhoto = livePhoto;
-        [weakSelf.livePhotoView startPlaybackWithStyle:PHLivePhotoViewPlaybackStyleFull];
+        if ([HXPhotoCommon photoCommon].livePhotoAutoPlay) {
+            [weakSelf.livePhotoView startPlaybackWithStyle:PHLivePhotoViewPlaybackStyleFull];
+        }
     } failed:^(NSDictionary *info, HXPhotoModel *model) {
         if (weakSelf.model != model) return;
         weakSelf.progressView.hidden = YES;
@@ -159,6 +161,8 @@
         [imageURLRequest setHTTPMethod:@"HEAD"];
         NSHTTPURLResponse *imageResp = nil;
         NSError *imageErr = nil;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored"-Wdeprecated-declarations"
         [NSURLConnection sendSynchronousRequest:imageURLRequest returningResponse:&imageResp error:&imageErr];
         
         if (self.cacheImage) {
@@ -170,6 +174,7 @@
         NSHTTPURLResponse *videoResp = nil;
         NSError *videoErr = nil;
         [NSURLConnection sendSynchronousRequest:videoURLRequest returningResponse:&videoResp error:&videoErr];
+#pragma clang diagnostic pop
         if (!imageErr && !videoErr) {
             self.totalLength = videoResp.expectedContentLength + imageResp.expectedContentLength;
         }
@@ -280,7 +285,9 @@
         }
         [weakSelf.livePhotoView stopPlayback];
         weakSelf.livePhotoView.livePhoto = livePhoto;
-        [weakSelf.livePhotoView startPlaybackWithStyle:PHLivePhotoViewPlaybackStyleFull];
+        if ([HXPhotoCommon photoCommon].livePhotoAutoPlay) {
+            [weakSelf.livePhotoView startPlaybackWithStyle:PHLivePhotoViewPlaybackStyleFull];
+        }
     }];
 }
 - (void)cancelLivePhoto {
@@ -323,8 +330,8 @@
         self.progressView.hidden = YES;
         self.progressView.progress = 0;
         if (_livePhotoView.livePhoto) {
-            self.livePhotoView.livePhoto = nil;
             [self stopLivePhoto];
+            self.livePhotoView.livePhoto = nil;
         }
     }
     self.stopCancel = NO;
@@ -345,7 +352,9 @@
 }
 - (void)livePhotoView:(PHLivePhotoView *)livePhotoView didEndPlaybackWithStyle:(PHLivePhotoViewPlaybackStyle)playbackStyle {
     if (livePhotoView == _livePhotoView) {
-        [livePhotoView startPlaybackWithStyle:PHLivePhotoViewPlaybackStyleFull];
+        if ([HXPhotoCommon photoCommon].livePhotoAutoPlay) {
+            [livePhotoView startPlaybackWithStyle:PHLivePhotoViewPlaybackStyleFull];
+        }
     }
 //    [self stopLivePhoto];
 }

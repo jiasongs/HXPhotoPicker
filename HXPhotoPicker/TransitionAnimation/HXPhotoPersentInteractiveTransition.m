@@ -1,9 +1,9 @@
 //
 //  HXPhotoPersentInteractiveTransition.m
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 2018/9/8.
-//  Copyright © 2018年 洪欣. All rights reserved.
+//  Created by Silence on 2018/9/8.
+//  Copyright © 2018年 Silence. All rights reserved.
 //
 
 #import "HXPhotoPersentInteractiveTransition.h"
@@ -25,13 +25,12 @@
 @property (weak, nonatomic) HXPhotoView *photoView;
 @property (assign, nonatomic) BOOL isPanGesture;
 
-
 @property (assign, nonatomic) CGFloat scrollViewZoomScale;
 @property (assign, nonatomic) CGSize scrollViewContentSize;
 @property (assign, nonatomic) CGPoint scrollViewContentOffset;
 @property (assign, nonatomic) CGRect imageInitialFrame;
 @property (strong, nonatomic) UIPanGestureRecognizer *panGesture;
-
+@property (assign, nonatomic) BOOL beginInterPercentCompletion;
 @end
 
 @implementation HXPhotoPersentInteractiveTransition
@@ -100,16 +99,20 @@
             }
             self.isPanGesture = YES;
             if (![(HXPhotoPreviewViewController *)self.vc bottomView].userInteractionEnabled) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored"-Wdeprecated-declarations"
                 [[UIApplication sharedApplication] setStatusBarHidden:NO];
+#pragma clang diagnostic pop
             }
             [(HXPhotoPreviewViewController *)self.vc setStopCancel:YES];
             self.beginX = [gestureRecognizer locationInView:gestureRecognizer.view].x;
             self.beginY = [gestureRecognizer locationInView:gestureRecognizer.view].y;
+            self.beginInterPercentCompletion = NO;
             self.interation = YES;
             [self.vc dismissViewControllerAnimated:YES completion:nil];
         } break;
         case UIGestureRecognizerStateChanged:
-            if (self.interation) {
+            if (self.interation && self.beginInterPercentCompletion) {
                 if (scale < 0.f) {
                     scale = 0.f;
                 }
@@ -138,6 +141,7 @@
                     [self finishInteractiveTransition];
                     [self interPercentFinish];
                 }
+                self.beginInterPercentCompletion = NO;
             }
             break;
         default:
@@ -145,6 +149,7 @@
                 self.interation = NO;
                 [self cancelInteractiveTransition];
                 [self interPercentCancel];
+                self.beginInterPercentCompletion = NO;
             }
             break;
     }
@@ -225,18 +230,22 @@
     if (self.contentView.model.subType == HXPhotoModelMediaSubTypeVideo) {
         [self.contentView.videoView hideOtherView:YES];
     }
+    self.beginInterPercentCompletion = YES;
 }
 - (void)updateInterPercent:(CGFloat)scale{
     HXPhotoPreviewViewController *fromVC = (HXPhotoPreviewViewController *)[self.transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
     fromVC.view.alpha = scale;
     self.bgView.alpha = fromVC.view.alpha;
 }
-- (void)interPercentCancel{
+- (void)interPercentCancel {
     id<UIViewControllerContextTransitioning> transitionContext = self.transitionContext;
     HXPhotoPreviewViewController *fromVC = (HXPhotoPreviewViewController *)[transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
     UIViewController *toVC = [self.transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
     if (!fromVC.bottomView.userInteractionEnabled) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored"-Wdeprecated-declarations"
         [[UIApplication sharedApplication] setStatusBarHidden:YES];
+#pragma clang diagnostic pop
         [toVC.navigationController setNavigationBarHidden:YES];
         toVC.navigationController.navigationBar.alpha = 1;
     }
@@ -314,9 +323,23 @@
         [fromVC.delegate photoPreviewControllerDidCancel:fromVC model:model];
     }
     fromVC.manager.selectPhotoing = NO;
+    
+    if (self.tempCell && self.tempCell.layer.cornerRadius > 0) {
+        UIView *maskView = [[UIView alloc] initWithFrame:self.contentView.bounds];
+        maskView.backgroundColor = [UIColor redColor];
+        maskView.layer.cornerRadius = 0.f;
+        maskView.layer.masksToBounds = true;
+        self.contentView.maskView = maskView;
+    }
+
     [UIView animateWithDuration:duration delay:0.0 usingSpringWithDamping:0.8 initialSpringVelocity:0.1 options:option animations:^{
         if (self.tempCell) {
-            self.contentView.frame = [self.tempCell convertRect:self.tempCell.bounds toView: containerView];
+            CGRect toFrame = [self.tempCell convertRect:self.tempCell.bounds toView: containerView];
+            self.contentView.frame = toFrame;
+            if (self.contentView.maskView != nil) {
+                self.contentView.maskView.layer.cornerRadius = self.tempCell.layer.cornerRadius;
+                self.contentView.maskView.frame = (CGRect) { CGPointZero, toFrame.size };
+            }
         }else {
             self.contentView.alpha = 0;
             self.contentView.transform = CGAffineTransformMakeScale(0.3, 0.3);

@@ -1,9 +1,9 @@
 //
 //  NSTimer+HXExtension.m
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 2019/1/3.
-//  Copyright © 2019年 洪欣. All rights reserved.
+//  Created by Silence on 2019/1/3.
+//  Copyright © 2019年 Silence. All rights reserved.
 //
 
 #import "NSTimer+HXExtension.h"

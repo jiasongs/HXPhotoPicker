@@ -1,9 +1,9 @@
 //
 //  HXPhotoSubViewCell.h
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 17/2/17.
-//  Copyright © 2017年 洪欣. All rights reserved.
+//  Created by Silence on 17/2/17.
+//  Copyright © 2017年 Silence. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
@@ -14,16 +14,6 @@
 #import <SDWebImage/UIImageView+WebCache.h>
 #elif __has_include("UIImageView+WebCache.h")
 #import "UIImageView+WebCache.h"
-#endif
-
-#if __has_include(<YYWebImage/YYWebImage.h>)
-#import <YYWebImage/YYWebImage.h>
-#elif __has_include("YYWebImage.h")
-#import "YYWebImage.h"
-#elif __has_include(<YYKit/YYKit.h>)
-#import <YYKit/YYKit.h>
-#elif __has_include("YYKit.h")
-#import "YYKit.h"
 #endif
 
 @protocol HXPhotoSubViewCellDelegate <NSObject>

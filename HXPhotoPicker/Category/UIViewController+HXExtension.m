@@ -1,9 +1,9 @@
 //
 //  UIViewController+HXExtension.m
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 2017/11/24.
-//  Copyright © 2017年 洪欣. All rights reserved.
+//  Created by Silence on 2017/11/24.
+//  Copyright © 2017年 Silence. All rights reserved.
 //
 
 #import "UIViewController+HXExtension.h"
@@ -103,6 +103,21 @@
 
 - (void)hx_presentPreviewPhotoControllerWithManager:(HXPhotoManager *)manager
                                        previewStyle:(HXPhotoViewPreViewShowStyle)previewStyle
+                              showBottomPageControl:(BOOL)showBottomPageControl
+                                       currentIndex:(NSUInteger)currentIndex {
+    [self hx_presentPreviewPhotoControllerWithManager:manager previewStyle:previewStyle showBottomPageControl:showBottomPageControl currentIndex:currentIndex photoView:nil];
+}
+
+- (void)hx_presentPreviewPhotoControllerWithManager:(HXPhotoManager *)manager
+                                       previewStyle:(HXPhotoViewPreViewShowStyle)previewStyle
+                                       currentIndex:(NSUInteger)currentIndex
+                                          photoView:(HXPhotoView * _Nullable)photoView {
+    [self hx_presentPreviewPhotoControllerWithManager:manager previewStyle:previewStyle showBottomPageControl:YES currentIndex:currentIndex photoView:photoView];
+}
+
+- (void)hx_presentPreviewPhotoControllerWithManager:(HXPhotoManager *)manager
+                                       previewStyle:(HXPhotoViewPreViewShowStyle)previewStyle
+                              showBottomPageControl:(BOOL)showBottomPageControl
                                        currentIndex:(NSUInteger)currentIndex
                                           photoView:(HXPhotoView * _Nullable)photoView {
     
@@ -121,6 +136,11 @@
         vc.currentModelIndex = 0;
     }else {
         vc.currentModelIndex = currentIndex;
+    }
+    if (photoView) {
+        vc.showBottomPageControl = photoView.previewShowDeleteButton;
+    }else {
+        vc.showBottomPageControl = showBottomPageControl;
     }
     vc.previewShowDeleteButton = photoView.previewShowDeleteButton;
     vc.photoView = photoView;
@@ -224,9 +244,11 @@
 }
 
 - (HXCustomNavigationController *)hx_customNavigationController {
-    if ([self.navigationController isKindOfClass:[HXCustomNavigationController class]]) {
+    /// ruanmei
+    if ([self.navigationController isKindOfClass:HXCustomNavigationController.class]) {
         return (HXCustomNavigationController *)self.navigationController;
     }
     return nil;
 }
+
 @end

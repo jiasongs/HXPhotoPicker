@@ -1,9 +1,9 @@
 //
 //  HXVideoEditViewController.h
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 2017/12/31.
-//  Copyright © 2017年 洪欣. All rights reserved.
+//  Created by Silence on 2017/12/31.
+//  Copyright © 2017年 Silence. All rights reserved.
 //  
 
 #import <UIKit/UIKit.h>

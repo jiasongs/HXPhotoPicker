@@ -1,9 +1,9 @@
 //
 //  HXPhotoPreviewVideoViewCell.m
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 2019/12/5.
-//  Copyright © 2019 洪欣. All rights reserved.
+//  Created by Silence on 2019/12/5.
+//  Copyright © 2019 Silence. All rights reserved.
 //
 
 #import "HXPhotoPreviewVideoViewCell.h"
@@ -80,10 +80,18 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
-    if (orientation == UIInterfaceOrientationPortrait || orientation == UIInterfaceOrientationPortraitUpsideDown) {
-        self.bottomSliderView.frame = CGRectMake(15, self.hx_h - hxBottomMargin - 60, self.hx_w - 30, 35);
+    if (orientation == UIInterfaceOrientationPortrait || orientation == UIInterfaceOrientationPortraitUpsideDown || HX_UI_IS_IPAD) {
+        CGFloat sliderY = HX_IS_IPHONEX ? self.hx_h - hxBottomMargin - 50 : self.hx_h - 50;
+        if (self.didAddBottomPageControl) {
+            sliderY -= HX_IS_IPHONEX ? 10 : 30;
+        }
+        self.bottomSliderView.frame = CGRectMake(15, sliderY, self.hx_w - 30, 35);
     }else if (orientation == UIInterfaceOrientationLandscapeRight || orientation == UIInterfaceOrientationLandscapeLeft){
-        self.bottomSliderView.frame = CGRectMake(15, self.hx_h - 60, self.hx_w - 15 - hxBottomMargin, 35);
+        CGFloat sliderY =  HX_IS_IPHONEX ? self.hx_h - 60 : self.hx_h - 50;
+        if (self.didAddBottomPageControl) {
+            sliderY -=  30;
+        }
+        self.bottomSliderView.frame = CGRectMake(15, sliderY, self.hx_w - 15 - hxBottomMargin, 35);
     }
 }
 @end

@@ -1,9 +1,9 @@
 //
 //  HXPhotoCommon.m
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 2019/1/8.
-//  Copyright © 2019年 洪欣. All rights reserved.
+//  Created by Silence on 2019/1/8.
+//  Copyright © 2019年 Silence. All rights reserved.
 //
 
 #import "HXPhotoCommon.h"
@@ -230,13 +230,22 @@ static id instance;
             if ([imageData writeToFile:fullPathToFile atomically:YES]) {
                 NSURL *imageURL = [NSURL fileURLWithPath:fullPathToFile];
                 [[NSUserDefaults standardUserDefaults] setURL:imageURL forKey:HXCameraImageKey];
+                self.cameraImageURL = imageURL;
             }
             self.cameraImage = nil;
         });
     }
 }
 - (void)setCameraImage:(UIImage *)cameraImage {
-    _cameraImage = [cameraImage hx_scaleImagetoScale:0.4];
+    if (!cameraImage) {
+        _cameraImage = nil;
+    }
+    UIImage *image = [cameraImage hx_scaleImagetoScale:0.4];
+    if (image) {
+        _cameraImage = image;
+    }else {
+        _cameraImage = cameraImage;
+    }
 }
 /** 初始化并监听网络变化 */
 - (void)listenNetWorkStatus {
@@ -244,11 +253,10 @@ static id instance;
     AFNetworkReachabilityManager *manager = [AFNetworkReachabilityManager sharedManager];
     self.netStatus = manager.networkReachabilityStatus;
     [manager startMonitoring];
-    HXWeakSelf
     [manager setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
-        weakSelf.netStatus = status;
-        if (weakSelf.reachabilityStatusChangeBlock) {
-            weakSelf.reachabilityStatusChangeBlock(status);
+        self.netStatus = status;
+        if (self.reachabilityStatusChangeBlock) {
+            self.reachabilityStatusChangeBlock(status);
         }
     }];
 #endif
@@ -295,10 +303,12 @@ static id instance;
     [downloadTask resume];
     return downloadTask;
 #else
+    /// pod导入的请改成 "HXPhotoPicker/SDWebImage_AF" 或 "HXPhotoPicker/YYWebImage_AF"
     NSSLog(@"没有导入AFNetworking网络框架无法下载视频");
     return nil;
 #endif
 }
+
 + (void)deallocPhotoCommon {
     once = 0;
     once1 = 0;

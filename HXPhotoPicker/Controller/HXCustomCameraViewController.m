@@ -1,9 +1,9 @@
 //
 //  HXCustomCameraViewController.m
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 2017/9/30.
-//  Copyright © 2017年 洪欣. All rights reserved.
+//  Created by Silence on 2017/9/30.
+//  Copyright © 2017年 Silence. All rights reserved.
 //
 
 #import "HXCustomCameraViewController.h"
@@ -172,7 +172,7 @@ CLLocationManagerDelegate
 }
 - (void)setupImageOutput {
     [self.cameraController initImageOutput];
-    self.cameraController.flashMode = 2;
+    self.cameraController.flashMode = AVCaptureFlashModeAuto;
 }
 - (void)setupMovieOutput {
     [self.cameraController addAudioInput];
@@ -231,7 +231,11 @@ CLLocationManagerDelegate
     if (_previewImageView) {
         [UIView animateWithDuration:0.25 animations:^{
             self.previewImageView.alpha = 0;
-            self.effectView.effect = nil;
+            if (HX_IOS9Later) {
+                [self.effectView setEffect:nil];
+            }else {
+                self.effectView.alpha = 0;
+            }
         } completion:^(BOOL finished) {
             [self.effectView removeFromSuperview];
             [self.previewImageView removeFromSuperview];
@@ -251,8 +255,7 @@ CLLocationManagerDelegate
     
     self.previewView.maxScale = [self.cameraController maxZoomFactor];
     [self resetCameraZoom];
-    
-    self.cameraController.flashMode = 0;
+    self.cameraController.flashMode = AVCaptureFlashModeAuto;
     [self setupFlashAndTorchBtn];
     self.previewView.tapToExposeEnabled = self.cameraController.cameraSupportsTapToExpose;
     self.previewView.tapToFocusEnabled = self.cameraController.cameraSupportsTapToFocus;
@@ -270,7 +273,12 @@ CLLocationManagerDelegate
                 hx_showAlert(weakSelf, [NSBundle hx_localizedStringForKey:@"无法使用麦克风"], [NSBundle hx_localizedStringForKey:@"请在设置-隐私-相机中允许访问麦克风"], [NSBundle hx_localizedStringForKey:@"取消"], [NSBundle hx_localizedStringForKey:@"设置"], ^{
                     [weakSelf.view hx_showImageHUDText:[NSBundle hx_localizedStringForKey:@"麦克风添加失败，录制视频会没有声音哦!"]];
                 }, ^{
-                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
+                    NSURL *url = [NSURL URLWithString:UIApplicationOpenSettingsURLString];
+                    if (@available(iOS 10.0, *)) {
+                        [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+                    }else {
+                        [[UIApplication sharedApplication] openURL:url];
+                    }
                 }); 
             }
         });
@@ -307,28 +315,46 @@ CLLocationManagerDelegate
     [self.customNavigationBar setBackgroundImage:[[UIImage alloc] init] forBarMetrics:UIBarMetricsDefault];
     [self.customNavigationBar setTintColor:[UIColor whiteColor]];
     [self.customNavigationBar setBarTintColor:nil];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored"-Wdeprecated-declarations"
     [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationFade];
+#pragma clang diagnostic pop
     AVCaptureConnection *previewLayerConnection = [(AVCaptureVideoPreviewLayer *)self.previewView.previewLayer connection];
     if ([previewLayerConnection isVideoOrientationSupported])
         [previewLayerConnection setVideoOrientation:(AVCaptureVideoOrientation)[[UIApplication sharedApplication] statusBarOrientation]];
     
     [self preferredStatusBarUpdateAnimation];
+    if (self.manager.viewWillAppear) {
+        self.manager.viewWillAppear(self);
+    }
 }
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored"-Wdeprecated-declarations"
     [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationFade];
+#pragma clang diagnostic pop
     [self.cameraController stopMontionUpdate];
     [self preferredStatusBarUpdateAnimation];
+    if (self.manager.viewWillDisappear) {
+        self.manager.viewWillDisappear(self);
+    }
 }
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     [self.navigationController setNavigationBarHidden:YES];
     [self.cameraController startMontionUpdate];
+    if (self.manager.viewDidAppear) {
+        self.manager.viewDidAppear(self);
+    }
 }
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
     [self stopTimer];
     [self.cameraController stopSession];
+    if (self.manager.viewDidDisappear) {
+        self.manager.viewDidDisappear(self);
+    }
 } 
 - (void)dealloc {
     if (HX_ALLOW_LOCATION && _locationManager) {

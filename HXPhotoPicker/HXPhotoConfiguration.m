@@ -1,9 +1,9 @@
 //
 //  HXPhotoConfiguration.m
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 2017/11/21.
-//  Copyright © 2017年 洪欣. All rights reserved.
+//  Created by Silence on 2017/11/21.
+//  Copyright © 2017年 Silence. All rights reserved.
 //
 
 #import "HXPhotoConfiguration.h"
@@ -94,7 +94,7 @@
     self.photoEditCustomRatios = @[@{@"原始值" : @"{0, 0}"}, @{@"正方形" : @"{1, 1}"}, @{@"2:3" : @"{2, 3}"}, @{@"3:4" : @"{3, 4}"}, @{@"9:16" : @"{9, 16}"}, @{@"16:9" : @"{16, 9}"}];
     self.useWxPhotoEdit = YES;
     if (HX_IS_IPhoneX_All) {
-        _clarityScale = 1.8;
+        _clarityScale = 1.9;
     }else {
         _clarityScale = 1.5;
     }
@@ -108,6 +108,11 @@
         }
     }
     self.allowSlidingSelection = YES;
+    self.livePhotoAutoPlay = YES;
+}
+- (void)setLivePhotoAutoPlay:(BOOL)livePhotoAutoPlay {
+    _livePhotoAutoPlay = livePhotoAutoPlay;
+    [HXPhotoCommon photoCommon].livePhotoAutoPlay = livePhotoAutoPlay;
 }
 - (UIColor *)cameraFocusBoxColor {
     if (!_cameraFocusBoxColor) {
@@ -144,7 +149,7 @@
 - (void)setClarityScale:(CGFloat)clarityScale {
     if (clarityScale <= 0.f) {
         if (HX_IS_IPhoneX_All) {
-            _clarityScale = 1.8;
+            _clarityScale = 1.9;
         }else {
             _clarityScale = 1.5;
         }

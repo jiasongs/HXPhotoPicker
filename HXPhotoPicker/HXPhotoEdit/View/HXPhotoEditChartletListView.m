@@ -2,8 +2,8 @@
 //  HXPhotoEditChartletListView.m
 //  photoEditDemo
 //
-//  Created by 洪欣 on 2020/6/23.
-//  Copyright © 2020 洪欣. All rights reserved.
+//  Created by Silence on 2020/6/23.
+//  Copyright © 2020 Silence. All rights reserved.
 //
 
 #import "HXPhotoEditChartletListView.h"
@@ -17,7 +17,7 @@
 #import "HXPhotoEditConfiguration.h"
 #import "NSBundle+HXPhotoPicker.h"
 
-#define HXclViewHeight ([[UIApplication sharedApplication] statusBarOrientation] == UIInterfaceOrientationPortrait || [[UIApplication sharedApplication] statusBarOrientation] == UIInterfaceOrientationPortraitUpsideDown) ? (HX_IS_IPhoneX_All ? 400 : 350) : 200
+#define HXclViewHeight HX_UI_IS_IPAD ? 500 : (([[UIApplication sharedApplication] statusBarOrientation] == UIInterfaceOrientationPortrait || [[UIApplication sharedApplication] statusBarOrientation] == UIInterfaceOrientationPortraitUpsideDown) ? (HX_IS_IPhoneX_All ? 400 : 350) : 200)
 
 
 @interface HXPhotoEditChartletListView ()<UICollectionViewDataSource, UICollectionViewDelegate>

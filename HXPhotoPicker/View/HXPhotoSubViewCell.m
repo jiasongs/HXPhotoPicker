@@ -1,9 +1,9 @@
 //
 //  HXPhotoSubViewCell.m
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 17/2/17.
-//  Copyright © 2017年 洪欣. All rights reserved.
+//  Created by Silence on 17/2/17.
+//  Copyright © 2017年 Silence. All rights reserved.
 //
 
 #import "HXPhotoSubViewCell.h"
@@ -13,12 +13,13 @@
 #import "HXPhotoBottomSelectView.h"
 #import "HXPhotoEdit.h"
 #import "UIColor+HXExtension.h"
+#import "HXAssetManager.h"
 
 @interface HXPhotoSubViewCell ()
 @property (strong, nonatomic) UIImageView *imageView;
 @property (strong, nonatomic) UIButton *deleteBtn;
 @property (strong, nonatomic) HXCircleProgressView *progressView;
-@property (assign, nonatomic) int32_t requestID;
+@property (assign, nonatomic) PHImageRequestID requestID;
 @property (strong, nonatomic) UILabel *stateLb;
 @property (strong, nonatomic) CAGradientLayer *bottomMaskLayer;
 @property (strong, nonatomic) UIView *bottomMaskView;
@@ -235,8 +236,7 @@
         }
     }else {
         if (model.localIdentifier && !model.asset) {
-            PHFetchOptions *options = [[PHFetchOptions alloc] init];
-            model.asset = [[PHAsset fetchAssetsWithLocalIdentifiers:@[model.localIdentifier] options:options] firstObject];
+            model.asset = [HXAssetManager fetchAssetWithLocalIdentifier:model.localIdentifier];
         }
         self.deleteBtn.hidden = NO;
         if (model.networkPhotoUrl) {
@@ -244,7 +244,6 @@
                 self.imageView.image = model.photoEdit.editPreviewImage;
             }else {
                 HXWeakSelf
-                self.progressView.hidden = model.downloadComplete;
                 if (model.downloadComplete && !model.downloadError) {
                     if (model.previewPhoto.images.count) {
                         self.imageView.image = nil;
@@ -253,6 +252,7 @@
                         self.imageView.image = model.previewPhoto;
                     }
                 }else {
+                    self.progressView.hidden = NO;
                     [self.imageView hx_setImageWithModel:model original:NO progress:^(CGFloat progress, HXPhotoModel *model) {
                         if (weakSelf.model == model) {
                             weakSelf.progressView.progress = progress;
@@ -283,11 +283,15 @@
             }else {
                 if (model.asset) {
                     HXWeakSelf
-                    [self.model requestThumbImageWithWidth:300 completion:^(UIImage *image, HXPhotoModel *model, NSDictionary *info) {
+                    PHImageRequestID requestID = [self.model requestThumbImageWithWidth:250 completion:^(UIImage *image, HXPhotoModel *model, NSDictionary *info) {
                         if (weakSelf.model == model) {
                             weakSelf.imageView.image = image;
                         }
                     }];
+                    if (self.requestID != requestID) {
+                        [[PHImageManager defaultManager] cancelImageRequest:self.requestID];
+                    }
+                    self.requestID = requestID;
                 }else {
                     if (model.previewPhoto) {
                         if (model.previewPhoto.images.count) {

@@ -1,9 +1,9 @@
 //
 //  UIImage+HXExtension.m
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 17/2/15.
-//  Copyright © 2017年 洪欣. All rights reserved.
+//  Created by Silence on 17/2/15.
+//  Copyright © 2017年 Silence. All rights reserved.
 //
 
 #import "UIImage+HXExtension.h"
@@ -296,7 +296,15 @@ static CGRect swapWidthAndHeight(CGRect rect) {
 
     return smallImage;
 }
-
+- (UIImage *)hx_roundClipingImage {
+    UIGraphicsBeginImageContext(self.size);
+    UIBezierPath *path = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(0, 0, self.size.width, self.size.height)];
+    [path addClip];
+    [self drawAtPoint:CGPointZero];
+    UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return newImage;
+}
 - (UIImage *)hx_scaleToFillSize:(CGSize)size {
     if (CGSizeEqualToSize(self.size, size)) {
         return self;

@@ -1,14 +1,15 @@
 //
 //  HXDateAlbumViewController.m
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 2017/10/14.
-//  Copyright © 2017年 洪欣. All rights reserved.
+//  Created by Silence on 2017/10/14.
+//  Copyright © 2017年 Silence. All rights reserved.
 //
 
 #import "HXAlbumListViewController.h" 
 #import "HXPhotoViewController.h"
 #import "UIViewController+HXExtension.h"
+#import "HXAssetManager.h"
 
 @interface HXAlbumListViewController ()
 <
@@ -124,10 +125,10 @@ UITableViewDelegate
 - (void)changeSubviewFrame {
     UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
     CGFloat navBarHeight = hxNavigationBarHeight;
-    NSInteger lineCount = 2;
-    if (orientation == UIInterfaceOrientationPortrait || orientation == UIInterfaceOrientationPortraitUpsideDown) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored"-Wdeprecated-declarations"
+    if (orientation == UIInterfaceOrientationPortrait || orientation == UIInterfaceOrientationPortraitUpsideDown || HX_UI_IS_IPAD) {
         navBarHeight = hxNavigationBarHeight;
-        lineCount = 2;
         [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationFade];
     }else if (orientation == UIInterfaceOrientationLandscapeRight || orientation == UIInterfaceOrientationLandscapeLeft){
         [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationFade];
@@ -136,16 +137,14 @@ UITableViewDelegate
         }else {
             navBarHeight = self.navigationController.navigationBar.hx_h + 20;
         }
-        lineCount = 3;
     }
+#pragma clang diagnostic pop
     CGFloat leftMargin = 0;
     CGFloat rightMargin = 0;
-    CGFloat width = self.view.hx_w;
     CGFloat bottomMargin = hxBottomMargin;
     if (HX_IS_IPhoneX_All && (orientation == UIInterfaceOrientationLandscapeLeft || orientation == UIInterfaceOrientationLandscapeRight)) {
         leftMargin = 35;
         rightMargin = 35;
-        width = self.view.hx_w - 70;
         bottomMargin = 0;
     }
     
@@ -172,10 +171,24 @@ UITableViewDelegate
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     [self changeStatusBarStyle];
+    if (self.manager.viewWillAppear) {
+        self.manager.viewWillAppear(self);
+    }
 }
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
+    if (self.manager.viewWillDisappear) {
+        self.manager.viewWillDisappear(self);
+    }
 }
+- (void)viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
+    if (self.manager.viewDidDisappear) {
+        self.manager.viewDidDisappear(self);
+    }
+}
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored"-Wdeprecated-declarations"
 - (void)changeStatusBarStyle {
     if ([HXPhotoCommon photoCommon].isDark) {
         [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent animated:YES];
@@ -183,6 +196,7 @@ UITableViewDelegate
     }
     [[UIApplication sharedApplication] setStatusBarStyle:self.manager.configuration.statusBarStyle animated:YES];
 }
+#pragma clang diagnostic pop
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     if (!self.albumModelArray.count) {
@@ -197,6 +211,9 @@ UITableViewDelegate
             }
         }
 #endif
+    }
+    if (self.manager.viewDidAppear) {
+        self.manager.viewDidAppear(self);
     }
 }
 - (void)setupUI {
@@ -366,6 +383,7 @@ UITableViewDelegate
     if (self.navigationController.topViewController != self) {
         return;
     }
+    [self.hx_customNavigationController clearAssetCache];
     HXAlbumModel *model = self.albumModelArray[indexPath.row];
     [self pushPhotoListViewControllerWithAlbumModel:model animated:YES]; 
 }
@@ -430,7 +448,12 @@ UITableViewDelegate
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIApplicationDidChangeStatusBarOrientationNotification object:nil];
 }
 - (void)goSetup {
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
+    NSURL *url = [NSURL URLWithString:UIApplicationOpenSettingsURLString];
+    if (@available(iOS 10.0, *)) {
+        [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+    }else {
+        [[UIApplication sharedApplication] openURL:url];
+    }
 }
 @end
      
@@ -487,11 +510,14 @@ UITableViewDelegate
 - (void)setAlbumImage {
     NSInteger photoCount = self.model.count;
     HXWeakSelf
-    self.requestId1 = [HXPhotoModel requestThumbImageWithPHAsset:self.model.assetResult.lastObject width:300 completion:^(UIImage *image, PHAsset *asset) {
-        if (weakSelf.model.assetResult.lastObject == asset) {
-            weakSelf.coverView1.image = image;
-        }
-    }];
+    PHAsset *asset = self.model.assetResult.lastObject;
+    if (asset) {
+        self.requestId1 = [HXAssetManager requestThumbnailImageForAsset:asset targetWidth:300 completion:^(UIImage * _Nonnull result, NSDictionary<NSString *,id> * _Nonnull info) {
+            if (weakSelf.model.assetResult.lastObject == asset && result) {
+                weakSelf.coverView1.image = result;
+            }
+        }];
+    }
     
     self.photoNumberLb.text = [@(photoCount + self.model.cameraCount).stringValue hx_countStrBecomeComma];
     if (self.getResultCompleteBlock) {

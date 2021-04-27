@@ -2,8 +2,8 @@
 //  HXPhotoEditChartletPreviewView.m
 //  photoEditDemo
 //
-//  Created by 洪欣 on 2020/7/1.
-//  Copyright © 2020 洪欣. All rights reserved.
+//  Created by Silence on 2020/7/1.
+//  Copyright © 2020 Silence. All rights reserved.
 //
 
 #import "HXPhotoEditChartletPreviewView.h"
@@ -95,7 +95,7 @@
         CGFloat height = width;
         CGFloat imgWidth = self.imageSize.width;
         CGFloat imgHeight = self.imageSize.height;
-        if ([[UIApplication sharedApplication] statusBarOrientation] == UIInterfaceOrientationPortrait || [[UIApplication sharedApplication] statusBarOrientation] == UIInterfaceOrientationPortraitUpsideDown) {
+        if ([[UIApplication sharedApplication] statusBarOrientation] == UIInterfaceOrientationPortrait || [[UIApplication sharedApplication] statusBarOrientation] == UIInterfaceOrientationPortraitUpsideDown || HX_UI_IS_IPAD) {
             if (imgWidth > imgHeight) {
                 width = self.hx_w - 40;
             }else if (imgHeight > imgWidth) {

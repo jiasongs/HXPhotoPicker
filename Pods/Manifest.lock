@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 PODS:
   - AFNetworking (3.2.1):
     - AFNetworking/NSURLSession (= 3.2.1)
@@ -42,3 +43,8 @@ SPEC CHECKSUMS:
 PODFILE CHECKSUM: f7e6d9d09bb2874b87875801ef9ae0a8e897b2d6
 
 COCOAPODS: 1.10.0.rc.1
+=======
+PODFILE CHECKSUM: a36bf61d9f4e376e89919bf08e8596f7dadeab5f
+
+COCOAPODS: 1.10.0
+>>>>>>> c5a80ff4664b6e59890d1eed303bebc0fee6e468

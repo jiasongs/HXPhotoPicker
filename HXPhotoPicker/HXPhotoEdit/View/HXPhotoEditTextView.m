@@ -2,8 +2,8 @@
 //  HXPhotoEditTextView.m
 //  photoEditDemo
 //
-//  Created by 洪欣 on 2020/6/22.
-//  Copyright © 2020 洪欣. All rights reserved.
+//  Created by Silence on 2020/6/22.
+//  Copyright © 2020 Silence. All rights reserved.
 //
 
 #import "HXPhotoEditTextView.h"
@@ -15,6 +15,7 @@
 #import "HXPhotoEditConfiguration.h"
 #import "NSBundle+HXPhotoPicker.h"
 #import "UIFont+HXExtension.h"
+#import "HXPhotoTools.h"
 
 #define HXEditTextBlankWidth 22
 #define HXEditTextRadius 8.f

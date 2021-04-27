@@ -1,9 +1,9 @@
 //
 //  HXPhotoEditViewController.m
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 2017/10/27.
-//  Copyright © 2017年 洪欣. All rights reserved.
+//  Created by Silence on 2017/10/27.
+//  Copyright © 2017年 Silence. All rights reserved.
 //
 
 #import "HXPhotoEditViewController.h"
@@ -71,14 +71,20 @@
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     [self.navigationController setNavigationBarHidden:YES];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored"-Wdeprecated-declarations"
     [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationFade];
+#pragma clang diagnostic pop
 }
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     [self stopTimer];
     [self.model.asset cancelContentEditingInputRequest:self.requestId];
     [self.navigationController setNavigationBarHidden:NO];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored"-Wdeprecated-declarations"
     [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationFade];
+#pragma clang diagnostic pop
 }
 - (void)viewDidLayoutSubviews {
     [super viewDidLayoutSubviews];
@@ -98,7 +104,10 @@
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIApplicationWillChangeStatusBarOrientationNotification object:nil];
     
     [self.model.asset cancelContentEditingInputRequest:self.requestId];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored"-Wdeprecated-declarations"
     [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationFade];
+#pragma clang diagnostic pop
 }
 - (CGRect)getImageFrame {
     UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
@@ -205,12 +214,30 @@
         if (!self.isInside) {
             [self.view hx_showLoadingHUDText:nil];
         }
-        [self requestImaegURL];
+        [self requestImageData];
     }else {
         self.imageView.image = self.model.thumbPhoto;
         self.originalImage = self.model.thumbPhoto;
         [self loadImageCompletion];
     }
+}
+- (void)requestImageData {
+    HXWeakSelf
+    self.requestId = [self.model requestImageDataStartRequestICloud:^(PHImageRequestID iCloudRequestId, HXPhotoModel * _Nullable model) {
+        weakSelf.requestId = iCloudRequestId;
+    } progressHandler:nil success:^(NSData * _Nullable imageData, UIImageOrientation orientation, HXPhotoModel * _Nullable model, NSDictionary * _Nullable info) {
+        weakSelf.bottomView.userInteractionEnabled = YES;
+        UIImage *image = [UIImage imageWithData:imageData];
+        if (image.imageOrientation != UIImageOrientationUp) {
+            image = [image hx_normalizedImage];
+        }
+        weakSelf.originalImage = image;
+        weakSelf.imageView.image = image;
+        [weakSelf.view hx_handleLoading];
+        [weakSelf loadImageCompletion];
+    } failed:^(NSDictionary * _Nullable info, HXPhotoModel * _Nullable model) {
+        [weakSelf requestImaegURL];
+    }];
 }
 - (void)requestImaegURL {
     HXWeakSelf

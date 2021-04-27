@@ -1,9 +1,9 @@
 //
 //  HXPhotoInteractiveTransition.m
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 2017/10/28.
-//  Copyright © 2017年 洪欣. All rights reserved.
+//  Created by Silence on 2017/10/28.
+//  Copyright © 2017年 Silence. All rights reserved.
 //
 
 #import "HXPhotoInteractiveTransition.h"
@@ -27,6 +27,8 @@
 @property (assign, nonatomic) CGSize scrollViewContentSize;
 @property (assign, nonatomic) CGPoint scrollViewContentOffset;
 @property (strong, nonatomic) UIPanGestureRecognizer *panGesture;
+
+@property (assign, nonatomic) BOOL beginInterPercentCompletion;
 @end
 
 @implementation HXPhotoInteractiveTransition
@@ -111,6 +113,7 @@
     return scale;
 }
 - (void)panGestureBegan:(UIPanGestureRecognizer *)panGesture {
+    self.beginInterPercentCompletion = NO;
     HXPhotoPreviewViewController *previewVC = (HXPhotoPreviewViewController *)self.vc;
     [previewVC setStopCancel:YES];
     self.beginX = [panGesture locationInView:panGesture.view].x;
@@ -119,7 +122,7 @@
     [self.vc.navigationController popViewControllerAnimated:YES];
 }
 - (void)panGestureChanged:(UIPanGestureRecognizer *)panGesture {
-    if (self.interation) {
+    if (self.interation && self.beginInterPercentCompletion) {
         CGFloat scale = [self panGestureScale:panGesture];
         if (scale < 0.f) {
             scale = 0.f;
@@ -153,6 +156,7 @@
             [self interPercentFinish];
         }
     }
+    self.beginInterPercentCompletion = NO;
 }
 - (void)panGestureOther:(UIPanGestureRecognizer *)panGesture {
     self.vc.view.userInteractionEnabled = YES;
@@ -162,7 +166,7 @@
         [self interPercentCancel];
     }
 }
-- (void)beginInterPercent{
+- (void)beginInterPercent {
     id<UIViewControllerContextTransitioning> transitionContext = self.transitionContext;
     
     HXPhotoPreviewViewController *fromVC = (HXPhotoPreviewViewController *)[transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
@@ -174,7 +178,6 @@
     HXPhotoPreviewViewCell *fromCell = [fromVC currentPreviewCell:model];
     HXPhotoViewCell *toCell = [toVC currentPreviewCell:model];
     self.fromCell = fromCell;
-    
     self.scrollViewZoomScale = [self.fromCell getScrollViewZoomScale];
     self.scrollViewContentSize = [self.fromCell getScrollViewContentSize];
     self.scrollViewContentOffset = [self.fromCell getScrollViewContentOffset];
@@ -184,7 +187,6 @@
     self.contentView = fromCell.previewContentView;
     self.imageInitialFrame = fromCell.previewContentView.frame;
     tempImageViewFrame = [fromCell.previewContentView convertRect:fromCell.previewContentView.bounds toView:containerView];
-    
     if (!toCell) {
         [toVC scrollToModel:model];
         toCell = [toVC currentPreviewCell:model];
@@ -211,7 +213,6 @@
     
     [fromCell resetScale:NO];
     [fromCell refreshImageSize];
-    
     self.contentView.frame = tempImageViewFrame;
     self.transitionImgViewCenter = self.contentView.center;
     
@@ -221,32 +222,17 @@
     [toVC.view insertSubview:self.contentView belowSubview:toVC.bottomView];
     if (!fromVC.bottomView.userInteractionEnabled) {
         self.bgView.backgroundColor = [UIColor blackColor];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored"-Wdeprecated-declarations"
         [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationFade];
+#pragma clang diagnostic pop
         
         if (HX_IOS11_Later) {
             // 处理 ios11 当导航栏隐藏时手势返回的问题
             [toVC.navigationController.navigationBar.layer removeAllAnimations];
             // 找到动画异常的视图，然后移除layer动画 ！！！！！
             // 一层一层的慢慢的找,把每个有动画的全部移除
-            for (UIView *navBarView in toVC.navigationController.navigationBar.subviews) {
-                [navBarView.layer removeAllAnimations];
-                for (UIView *navBarSubView in navBarView.subviews) {
-                    [navBarSubView.layer removeAllAnimations];
-                    for (UIView *backView in navBarSubView.subviews) {
-                        [backView.layer removeAllAnimations];
-                        for (UIView *backSubView in backView.subviews) {
-                            [backSubView.layer removeAllAnimations];
-                            for (UIView *backSSubView in backSubView.subviews) {
-                                [backSSubView.layer removeAllAnimations];
-                                for (CALayer *subLayer in backSSubView.layer.sublayers) {
-                                    // !!!!!!!!
-                                    [subLayer removeAllAnimations];
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            [self removeAllAnimationsForView:toVC.navigationController.navigationBar];
             [toVC.navigationController setNavigationBarHidden:NO animated:YES];
         }else {
             [toVC.navigationController setNavigationBarHidden:NO];
@@ -270,6 +256,28 @@
     if (self.contentView.model.subType == HXPhotoModelMediaSubTypeVideo) {
         [self.contentView.videoView hideOtherView:YES];
     }
+    self.beginInterPercentCompletion = YES;
+}
+- (void)removeAllAnimationsForView:(UIView *)view {
+    for (UIView *navBarView in view.subviews) {
+        [navBarView.layer removeAllAnimations];
+        for (UIView *navBarSubView in navBarView.subviews) {
+            [navBarSubView.layer removeAllAnimations];
+            for (UIView *backView in navBarSubView.subviews) {
+                [backView.layer removeAllAnimations];
+                for (UIView *backSubView in backView.subviews) {
+                    [backSubView.layer removeAllAnimations];
+                    for (UIView *backSSubView in backSubView.subviews) {
+                        [backSSubView.layer removeAllAnimations];
+                        for (CALayer *subLayer in backSSubView.layer.sublayers) {
+                            // !!!!!!!!
+                            [subLayer removeAllAnimations];
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 - (void)updateInterPercent:(CGFloat)scale{
     HXPhotoPreviewViewController *fromVC = (HXPhotoPreviewViewController *)[self.transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
@@ -287,7 +295,10 @@
     HXPhotoPreviewViewController *fromVC = (HXPhotoPreviewViewController *)[transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
     HXPhotoViewController *toVC = (HXPhotoViewController *)[self.transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
     if (!fromVC.bottomView.userInteractionEnabled) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored"-Wdeprecated-declarations"
         [[UIApplication sharedApplication] setStatusBarHidden:YES];
+#pragma clang diagnostic pop
         [toVC.navigationController setNavigationBarHidden:YES];
         toVC.navigationController.navigationBar.alpha = 1;
     }

@@ -2,8 +2,8 @@
 //  HXPhotoEditGridMaskLayer.m
 //  photoEditDemo
 //
-//  Created by 洪欣 on 2020/6/29.
-//  Copyright © 2020 洪欣. All rights reserved.
+//  Created by Silence on 2020/6/29.
+//  Copyright © 2020 Silence. All rights reserved.
 //
 
 #import "HXPhotoEditGridMaskLayer.h"
@@ -71,7 +71,11 @@
     CGRect maskRect = self.maskRect;
     CGMutablePathRef mPath = CGPathCreateMutable();
     CGPathAddRect(mPath, NULL, self.bounds);
-    CGPathAddRect(mPath, NULL, maskRect);
+    if (self.isRound) {
+        CGPathAddRoundedRect(mPath, NULL, maskRect, maskRect.size.width / 2.f, maskRect.size.height / 2.f);
+    }else {
+        CGPathAddRect(mPath, NULL, maskRect);
+    }
     return mPath;
 }
 

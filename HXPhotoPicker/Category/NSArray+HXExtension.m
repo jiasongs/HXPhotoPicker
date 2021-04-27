@@ -1,9 +1,9 @@
 //
 //  NSArray+HXExtension.m
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 2019/1/7.
-//  Copyright © 2019年 洪欣. All rights reserved.
+//  Created by Silence on 2019/1/7.
+//  Copyright © 2019年 Silence. All rights reserved.
 //
 
 #import "NSArray+HXExtension.h"
@@ -46,6 +46,9 @@
             NSString *path = dict[key];
             UIImage *image = [self hx_disposeHEICWithPath:path];
             if (image) {
+                if (image.imageOrientation != UIImageOrientationUp) {
+                    image = [image hx_normalizedImage];
+                }
                 [dataArray addObject:image];
             }
         }else {
@@ -62,11 +65,17 @@
         NSString *key = (__bridge NSString *)kCGImageDestinationLossyCompressionQuality;
         NSData *jpgData = [context JPEGRepresentationOfImage:ciImage colorSpace:ciImage.colorSpace options:@{key : @1}];
         UIImage *image = [UIImage imageWithData:jpgData];
+        if (image.imageOrientation != UIImageOrientationUp) {
+            image = [image hx_normalizedImage];
+        }
         return image;
     }else {
         NSData *imageData = [NSData dataWithContentsOfFile:path];
         UIImage *image = [UIImage imageWithData:imageData];
         if (!image) {
+            if (image.imageOrientation != UIImageOrientationUp) {
+                image = [image hx_normalizedImage];
+            }
             image = [UIImage imageWithContentsOfFile:path];
         }
         return image;
@@ -87,7 +96,7 @@
         [dict setValue:[NSError errorWithDomain:@"获取失败" code:99999 userInfo:nil] forKey:model.selectIndexStr];
     }
     __block NSInteger index = 0;
-    __block NSMutableArray *errorArray;
+    NSMutableArray *errorArray = [NSMutableArray array];
     for (HXPhotoModel *model in self) {
         [self requestImageWithOriginal:original photoModel:model successful:^(UIImage * _Nullable image, NSURL * _Nullable imagePath, HXPhotoModel *photoModel) {
             if (image) {
@@ -100,11 +109,9 @@
                     photoModel.previewPhoto = hImage;
                     [dict setObject:hImage forKey:photoModel.selectIndexStr];
                 }else {
-                    if (!errorArray) errorArray = [NSMutableArray array];
                     [errorArray addObject:photoModel];
                 }
             }else {
-                if (!errorArray) errorArray = [NSMutableArray array];
                 [errorArray addObject:photoModel];
             }
             index++;
@@ -114,7 +121,6 @@
                 }
             }
         } failure:^(HXPhotoModel *photoModel) {
-            if (!errorArray) errorArray = [NSMutableArray array];
             [errorArray addObject:photoModel];
             index++;
             if (index == count) {
@@ -152,6 +158,8 @@
     HXWeakSelf
     [self requestImageWithOriginal:original photoModel:model successful:^(UIImage * _Nullable image, NSURL * _Nullable imagePath, HXPhotoModel *photoModel) {
         if (image) {
+            photoModel.thumbPhoto = image;
+            photoModel.previewPhoto = image;
             [imageList addObject:image];
         }else if (imagePath) {
             UIImage *hImage = [NSArray hx_disposeHEICWithPath:imagePath.relativePath];
@@ -160,7 +168,47 @@
                 photoModel.previewPhoto = hImage;
                 [imageList addObject:hImage];
             }else {
-                [errorPhotoModels addObject:photoModel];
+                //已知在iPhone 8，iOS 10.0.2系统上，通过requestImageDataStartRequestICloud能获取到图片的URL，但通过此URL并不能获取到image。故调用requestPreviewImageWithSize方法获取image，并存到沙盒tmp下
+                [model requestPreviewImageWithSize:PHImageManagerMaximumSize startRequestICloud:^(PHImageRequestID iCloudRequestId, HXPhotoModel * _Nullable model) {
+                } progressHandler:^(double progress, HXPhotoModel * _Nullable model) {
+                } success:^(UIImage * _Nullable imageValue, HXPhotoModel * _Nullable model, NSDictionary * _Nullable info) {
+                    NSString *photoPathStr = [NSTemporaryDirectory() stringByAppendingString:@"HXPhotoPickerSave/"];
+                    BOOL isDir;
+                    BOOL isDirExit = [[NSFileManager defaultManager] fileExistsAtPath:photoPathStr isDirectory:&isDir];
+                    NSError *error;
+                    if (isDirExit == NO) {
+                        [[NSFileManager defaultManager] createDirectoryAtPath:photoPathStr withIntermediateDirectories:YES attributes:nil error:&error];
+                    }
+                    if (error) {
+                        [errorPhotoModels addObject:photoModel];
+                    }
+                    else {
+                        NSInteger timeStamp = [[NSDate new] timeIntervalSince1970];
+                        NSString *imgPath = [NSString stringWithFormat:@"%@%zd_%zd.jpg",photoPathStr, timeStamp, photoModels.count];
+                        [UIImageJPEGRepresentation(imageValue, 1.0) writeToFile:imgPath atomically:YES];
+                        photoModel.imageURL = [NSURL fileURLWithPath:imgPath];
+                        photoModel.thumbPhoto = imageValue;
+                        photoModel.previewPhoto = imageValue;
+                        [imageList addObject:imageValue];
+                    }
+                    
+                    [photoModels removeObjectAtIndex:0];
+                    if (!photoModels.count) {
+                        [weakSelf requestImageSeparatelyWithOriginal:original imageList:imageList.copy photoModels:photoModels errorPhotoModels:errorPhotoModels.copy completion:completion];
+                    }else {
+                        [weakSelf requestImageSeparatelyWithOriginal:original imageList:imageList photoModels:photoModels errorPhotoModels:errorPhotoModels completion:completion];
+                    }
+                } failed:^(NSDictionary * _Nullable info, HXPhotoModel * _Nullable model) {
+                    [errorPhotoModels addObject:photoModel];
+                    [photoModels removeObjectAtIndex:0];
+                    if (!photoModels.count) {
+                        [weakSelf requestImageSeparatelyWithOriginal:original imageList:imageList.copy photoModels:photoModels errorPhotoModels:errorPhotoModels.copy completion:completion];
+                    }else {
+                        [weakSelf requestImageSeparatelyWithOriginal:original imageList:imageList photoModels:photoModels errorPhotoModels:errorPhotoModels completion:completion];
+                    }
+                }];
+                
+                return;
             }
         }else {
             [errorPhotoModels addObject:photoModel];
@@ -192,7 +240,7 @@
     if (photoModel.type == HXPhotoModelMediaTypeCameraPhoto) {
         if (photoModel.networkPhotoUrl) {
             if ([HXPhotoCommon photoCommon].requestNetworkAfter) {
-                // 网络图片
+                // 需要下载网络图片就将 [HXPhotoCommon photoCommon].requestNetworkAfter = YES
                 [HXPhotoModel requestImageWithURL:photoModel.networkPhotoUrl progress:nil completion:^(UIImage * _Nullable image, NSURL * _Nullable url, NSError * _Nullable error) {
                     if (image) {
                         photoModel.thumbPhoto = image;
@@ -233,45 +281,32 @@
             return;
         }
     }
-    if ((original && photoModel.type != HXPhotoModelMediaTypeVideo) ||
-        photoModel.type == HXPhotoModelMediaTypePhotoGif) {
-        // 如果选择了原图，就换一种获取方式
-//        [photoModel requestPreviewImageWithSize:PHImageManagerMaximumSize startRequestICloud:nil progressHandler:nil success:^(UIImage * _Nullable image, HXPhotoModel * _Nullable model, NSDictionary * _Nullable info) {
+//    if ((original && photoModel.type != HXPhotoModelMediaTypeVideo) ||
+//        photoModel.type == HXPhotoModelMediaTypePhotoGif) {
+//        // 如果选择了原图，就换一种获取方式
+//        [photoModel requestImageURLStartRequestICloud:nil progressHandler:nil success:^(NSURL *imageURL, HXPhotoModel *model, NSDictionary *info) {
 //            if (successful) {
-//                successful(image, nil, model);
+//                successful(nil, imageURL, model);
 //            }
-//        } failed:^(NSDictionary * _Nullable info, HXPhotoModel * _Nullable model) {
+//        } failed:^(NSDictionary *info, HXPhotoModel *model) {
 //            if (failure) {
 //                failure(model);
 //            }
 //        }];
-        [photoModel requestImageURLStartRequestICloud:nil progressHandler:nil success:^(NSURL *imageURL, HXPhotoModel *model, NSDictionary *info) {
-            if (successful) {
-                successful(nil, imageURL, model);
+//    }else {
+        [photoModel requestImageDataStartRequestICloud:nil progressHandler:nil success:^(NSData * _Nullable imageData, UIImageOrientation orientation, HXPhotoModel * _Nullable model, NSDictionary * _Nullable info) {
+            UIImage *image = [UIImage imageWithData:imageData];
+            if (image.imageOrientation != UIImageOrientationUp) {
+                image = [image hx_normalizedImage];
             }
-        } failed:^(NSDictionary *info, HXPhotoModel *model) {
-            if (failure) {
-                failure(model);
+            // 不是原图那就压缩
+            if (!original) {
+                image = [image hx_scaleImagetoScale:0.6f];
             }
-        }];
-    }else {
-        CGSize size;
-        CGFloat width = [UIScreen mainScreen].bounds.size.width;
-        CGFloat height = [UIScreen mainScreen].bounds.size.height;
-        CGFloat imgWidth = photoModel.imageSize.width;
-        CGFloat imgHeight = photoModel.imageSize.height;
-        if (imgHeight > imgWidth / 9 * 20 ||
-            imgWidth > imgHeight / 9 * 20) {
-            // 处理一下长图
-            size = CGSizeMake(width, height);
-        }else {
-            size = CGSizeMake(photoModel.endImageSize.width * 1.5, photoModel.endImageSize.height * 1.5);
-        }
-        [photoModel requestPreviewImageWithSize:size startRequestICloud:nil progressHandler:nil success:^(UIImage *image, HXPhotoModel *model, NSDictionary *info) {
             if (successful) {
                 successful(image, nil, model);
             }
-        } failed:^(NSDictionary *info, HXPhotoModel *model) {
+        } failed:^(NSDictionary * _Nullable info, HXPhotoModel * _Nullable model) {
             if (model.previewPhoto) {
                 if (successful) {
                     successful(model.previewPhoto, nil, model);
@@ -282,7 +317,7 @@
                 }
             }
         }];
-    }
+//    }
 }
 
 - (void)hx_requestImageDataWithCompletion:(void (^)(NSArray<NSData *> * _Nullable imageDataArray))completion {

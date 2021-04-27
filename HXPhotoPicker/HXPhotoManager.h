@@ -1,9 +1,9 @@
 //
 //  HX_PhotoManager.h
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 17/2/8.
-//  Copyright © 2017年 洪欣. All rights reserved.
+//  Created by Silence on 17/2/8.
+//  Copyright © 2017年 Silence. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
@@ -17,16 +17,23 @@
 
 @interface HXPhotoManager : NSObject
 
+/// init
+/// @param type 选择类型
++ (instancetype)managerWithType:(HXPhotoManagerSelectedType)type;
+- (instancetype)initWithType:(HXPhotoManagerSelectedType)type;
+
 /// 当前选择类型
 @property (assign, nonatomic) HXPhotoManagerSelectedType type;
 
 /// 相关配置
 @property (strong, nonatomic) HXPhotoConfiguration *configuration;
 
-/// init
-/// @param type 选择类型
-- (instancetype)initWithType:(HXPhotoManagerSelectedType)type;
-+ (instancetype)managerWithType:(HXPhotoManagerSelectedType)type;
+/// 控制器生命周期，根据Class来判断具体类型，具体包括
+/// [HXAlbumListViewController、HXCustomCameraViewController、HXCustomNavigationController、HXPhotoViewController、HXPhotoPreviewViewController]
+@property (copy, nonatomic) void (^ viewWillAppear)(UIViewController *viewController);
+@property (copy, nonatomic) void (^ viewDidAppear)(UIViewController *viewController);
+@property (copy, nonatomic) void (^ viewWillDisappear)(UIViewController *viewController);
+@property (copy, nonatomic) void (^ viewDidDisappear)(UIViewController *viewController);
 
 /// 选择照片界面完成时的dismiss时是否需要动画效果
 /// 默认YES
@@ -44,8 +51,27 @@
 /// 默认YES
 @property (assign, nonatomic) BOOL cameraCancelDismissAnimated;
 
+/// 获取PHAsset集合时的谓词条件
+/// 需要自己根据type判断是否只获取照片或视频
+/// 默认 nil
+/// if (self.selectType == HXPhotoManagerSelectedTypePhoto) {
+///     // fetchOptionsPredicate = @"mediaType == 1";
+///     options.predicate = [NSPredicate predicateWithFormat:@"mediaType == %ld", PHAssetMediaTypeImage];
+/// }else if (self.selectType == HXPhotoManagerSelectedTypeVideo) {
+///     // fetchOptionsPredicate = @"mediaType == 2";
+///     options.predicate = [NSPredicate predicateWithFormat:@"mediaType == %ld", PHAssetMediaTypeVideo];
+/// }
+@property (copy, nonatomic) NSString *fetchOptionsPredicate;
+
+/// 过滤PHAsset   YES 过滤
+/// @param albumModel Asset所在相册模型
+@property (copy, nonatomic) BOOL (^ assetFilter)(HXAlbumModel *albumModel, PHAsset *asset);
+
+/// 过滤相册    YES 过滤
+@property (copy, nonatomic) BOOL (^ assetCollectionFilter)(PHAssetCollection *collection);
+
 /// 只使用相机功能不加载相册信息
-@property (assign, nonatomic) BOOL onlyCamera;
+//@property (assign, nonatomic) BOOL onlyCamera;
 
 /// 保存在本地的模型
 /// 如果为空，请调用 getLocalModelsInFileWithAddData: 方法获取
@@ -86,28 +112,6 @@
 /// 获取已选照片数组的照片总大小
 - (void)requestPhotosBytesWithCompletion:(void (^)(NSString *totalBytes, NSUInteger totalDataLengths))completion;
 
-/// 已选照片数据的总大小
-@property (assign, nonatomic) NSUInteger *selectPhotoTotalDataLengths;
-@property (strong, nonatomic) NSOperationQueue *dataOperationQueue;
-
-/// 使用 addCustomAssetModel: 此方法
-- (void)addLocalVideo:(NSArray<NSURL *> *)urlArray selected:(BOOL)selected DEPRECATED_MSG_ATTRIBUTE("Use 'addCustomAssetModel:' instead");
-
-/// 使用 addCustomAssetModel: 此方法
-@property (copy, nonatomic) NSArray *localImageList DEPRECATED_MSG_ATTRIBUTE("Use 'addCustomAssetModel:' instead");
-
-/// 使用 addCustomAssetModel: 此方法
-- (void)addLocalImage:(NSArray *)images selected:(BOOL)selected DEPRECATED_MSG_ATTRIBUTE("Use 'addCustomAssetModel:' instead");
-
-/// 使用 addCustomAssetModel: 此方法
-- (void)addLocalImageToAlbumWithImages:(NSArray *)images DEPRECATED_MSG_ATTRIBUTE("Use 'addCustomAssetModel:' instead");
-
-/// 使用 addCustomAssetModel: 此方法
-- (void)addNetworkingImageToAlbum:(NSArray<NSString *> *)imageUrls selected:(BOOL)selected DEPRECATED_MSG_ATTRIBUTE("Use 'addCustomAssetModel:' instead");
-
-/// 使用 addCustomAssetModel: 此方法
-@property (strong, nonatomic) NSArray<NSString *> *networkPhotoUrls DEPRECATED_MSG_ATTRIBUTE("Use 'addCustomAssetModel:' instead");
-
 /// 获取系统所有相册
 - (void)getAllAlbumModelWithCompletion:(getAllAlbumListBlock)completion;
 
@@ -117,7 +121,8 @@
 /// 据某个相册模型获取照片列表
 /// @param albumModel 相册模型
 /// @param complete 照片列表和首个选中的模型
-- (void)getPhotoListWithAlbumModel:(HXAlbumModel *)albumModel complete:(getPhotoListBlock)complete;
+- (void)getPhotoListWithAlbumModel:(HXAlbumModel *)albumModel
+                          complete:(getPhotoListBlock)complete;
 
 /// 将下载完成的iCloud上的资源模型添加到数组中，确保再次获取iCloud的图片时不会出现云朵标志
 - (void)addICloudModel:(HXPhotoModel *)model;
@@ -131,6 +136,10 @@
 /// return nil 则走判断是否达到最大值
 /// return 任意字符串 则会提醒返回的字符串，并且禁止选择
 @property (copy, nonatomic) NSString * (^ shouldSelectModel)(HXPhotoModel *model);
+
+/// 已选照片数据的总大小
+@property (assign, nonatomic) NSUInteger *selectPhotoTotalDataLengths;
+@property (strong, nonatomic) NSOperationQueue *dataOperationQueue;
 
 #pragma mark - < 关于选择完成之前的一些方法>
 /// 完成之前选择的总数量
@@ -233,6 +242,9 @@
 
 - (void)selectedListTransformAfter;
 - (void)selectedListTransformBefore;
+
+- (void)addTempCameraAssetModel:(HXPhotoModel *)model;
+- (void)removeAllTempCameraAssetModel;
 /**
  取消选择
  */

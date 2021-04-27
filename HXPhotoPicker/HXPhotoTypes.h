@@ -1,9 +1,9 @@
 //
 //  HXPhotoTypes.h
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 2020/8/3.
-//  Copyright © 2020 洪欣. All rights reserved.
+//  Created by Silence on 2020/8/3.
+//  Copyright © 2020 Silence. All rights reserved.
 //
 
 #ifndef HXPhotoTypes_h
@@ -22,7 +22,7 @@ typedef void (^ getAllAlbumListBlock)(NSMutableArray<HXAlbumModel *> * _Nullable
 
 typedef void (^ getSelectAlbumBlock)(HXAlbumModel * _Nullable selectedModel);
 
-typedef void (^ getPhotoListBlock)(NSMutableArray * _Nullable allList , NSMutableArray * _Nullable previewList , HXPhotoModel * _Nullable firstSelectModel, HXAlbumModel * _Nullable albumModel);
+typedef void (^ getPhotoListBlock)(NSMutableArray * _Nullable allList , NSMutableArray * _Nullable previewList, NSUInteger photoCount, NSUInteger videoCount , HXPhotoModel * _Nullable firstSelectModel, HXAlbumModel * _Nullable albumModel);
 
 typedef NS_ENUM(NSUInteger, HXPhotoManagerSelectedType) {
     HXPhotoManagerSelectedTypePhoto = 0,        //!< 只显示图片

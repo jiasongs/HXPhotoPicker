@@ -2,8 +2,8 @@
 //  HXPhotoEditGridMaskLayer.h
 //  photoEditDemo
 //
-//  Created by 洪欣 on 2020/6/29.
-//  Copyright © 2020 洪欣. All rights reserved.
+//  Created by Silence on 2020/6/29.
+//  Copyright © 2020 Silence. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
@@ -14,6 +14,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 /** 遮罩颜色 */
 @property (nonatomic, assign) CGColorRef maskColor;
+@property (nonatomic, assign) BOOL isRound;
 /** 遮罩范围 */
 @property (nonatomic, assign, setter=setMaskRect:) CGRect maskRect;
 - (void)setMaskRect:(CGRect)maskRect animated:(BOOL)animated;

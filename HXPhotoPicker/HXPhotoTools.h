@@ -1,9 +1,9 @@
 //
 //  HXPhotoTools.h
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 17/2/8.
-//  Copyright © 2017年 洪欣. All rights reserved.
+//  Created by Silence on 17/2/8.
+//  Copyright © 2017年 Silence. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
@@ -57,6 +57,7 @@
 
 /// 获取当前相册权限类型
 + (PHAuthorizationStatus)authorizationStatus;
++ (BOOL)authorizationStatusIsLimited;
 
 /// 显示未授权的弹窗
 + (void)showNoAuthorizedAlertWithViewController:(UIViewController * _Nullable)viewController
@@ -89,7 +90,10 @@
 
 + (BOOL)platform;
 + (BOOL)isIphone6;
++ (BOOL)isIphone12Mini;
 
+/// 判断RTL语言
++ (BOOL)isRTLLanguage;
 
 /// 判断网络地址是否在本地存在
 /// 如果文件夹不存在则会创建文件夹
@@ -142,4 +146,6 @@
 
 /// 删除下载的网络视频缓存文件
 + (void)deleteNetWorkVideoFile;
+
++ (CGFloat)getStatusBarHeight;
 @end

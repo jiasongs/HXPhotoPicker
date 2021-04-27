@@ -1,9 +1,9 @@
 //
 //  HXPreviewVideoView.m
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 2019/11/15.
-//  Copyright © 2019 洪欣. All rights reserved.
+//  Created by Silence on 2019/11/15.
+//  Copyright © 2019 Silence. All rights reserved.
 //
 
 #import "HXPreviewVideoView.h"
@@ -52,9 +52,10 @@
     return self;
 }
 - (void)setup {
+    self.playerLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
+    self.playerLayer.player = self.player;
     self.videoManualPause = NO;
     self.layer.masksToBounds = YES;
-    [self.layer addSublayer:self.playerLayer];
     [self addSubview:self.playBtn];
     
     
@@ -79,7 +80,6 @@
 - (void)setModel:(HXPhotoModel *)model {
     _model = model;
     if (self.player.currentItem != nil && !self.videoLoadFailed) return;
-    
 
     self.playBtn.hidden = YES;
     self.canRemovePlayerObservers = NO;
@@ -115,17 +115,20 @@
             return;
         }
     }
-    [self.model requestAVAssetStartRequestICloud:^(PHImageRequestID iCloudRequestId, HXPhotoModel *model) {
+    [UIView cancelPreviousPerformRequestsWithTarget:self];
+    [self performSelector:@selector(showLoading) withObject:nil afterDelay:0.2f];
+    self.requestID = [self.model requestAVAssetStartRequestICloud:^(PHImageRequestID iCloudRequestId, HXPhotoModel *model) {
         if (weakSelf.model != model) return;
-        [weakSelf showLoading];
         weakSelf.requestID = iCloudRequestId;
     } progressHandler:^(double progress, HXPhotoModel *model) {
         if (weakSelf.model != model) return;
     } success:^(AVAsset *avAsset, AVAudioMix *audioMix, HXPhotoModel *model, NSDictionary *info) {
         if (weakSelf.model != model) return;
+        [UIView cancelPreviousPerformRequestsWithTarget:weakSelf];
         [weakSelf requestAVAssetComplete:avAsset];
     } failed:^(NSDictionary *info, HXPhotoModel *model) {
         if (weakSelf.model != model) return;
+        [UIView cancelPreviousPerformRequestsWithTarget:weakSelf];
         weakSelf.videoLoadFailed = YES;
         [weakSelf hideLoading];
         if (![[info objectForKey:PHImageCancelledKey] boolValue]) {
@@ -434,13 +437,11 @@
         self.playBtn.hidden = YES;
     }
 }
++ (Class)layerClass {
+    return AVPlayerLayer.class;
+}
 - (AVPlayerLayer *)playerLayer {
-    if (!_playerLayer) {
-        _playerLayer = [[AVPlayerLayer alloc] init];
-        _playerLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
-        _playerLayer.player = self.player;
-    }
-    return _playerLayer;
+    return (AVPlayerLayer *)self.layer;
 }
 - (AVPlayer *)player {
     if (!_player) {
@@ -484,9 +485,7 @@
 }
 - (void)layoutSubviews {
     [super layoutSubviews];
-    if (!CGRectEqualToRect(self.playerLayer.frame, self.bounds)) {
-        self.playerLayer.frame = self.bounds;
-    }
+    self.playerLayer.frame = self.bounds;
     
     self.loadingView.hx_centerX = self.hx_w / 2;
     self.loadingView.hx_centerY = self.hx_h / 2;

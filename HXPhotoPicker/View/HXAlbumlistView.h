@@ -1,9 +1,9 @@
 //
 //  HXAlbumlistView.h
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 2018/9/26.
-//  Copyright © 2018年 洪欣. All rights reserved.
+//  Created by Silence on 2018/9/26.
+//  Copyright © 2018年 Silence. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
@@ -17,6 +17,7 @@
 @property (copy, nonatomic) void (^didSelectRowBlock)(HXAlbumModel *model);
 - (instancetype)initWithManager:(HXPhotoManager *)manager;
 - (void)refreshCamearCount;
+- (void)reloadAlbumAssetCountWithAlbumModel:(HXAlbumModel *)model;
 - (void)selectCellScrollToCenter;
 @end
 

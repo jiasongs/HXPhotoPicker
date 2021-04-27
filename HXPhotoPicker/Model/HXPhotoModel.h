@@ -1,9 +1,9 @@
 //
 //  HXPhotoModel.h
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 17/2/8.
-//  Copyright © 2017年 洪欣. All rights reserved.
+//  Created by Silence on 17/2/8.
+//  Copyright © 2017年 Silence. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
@@ -52,6 +52,7 @@
 @property (assign, nonatomic) CGSize imageSize;
 
 /// 本地视频URL / 网络视频地址
+/// 系统相册的资源(PHAsset不为nil的)需要通过exportVideoWithPresetName...方法获取
 @property (strong, nonatomic) NSURL * _Nullable videoURL;
 
 /// livephoto - 网络视频地址
@@ -206,26 +207,18 @@
                                               netWorkVideoURL:(NSURL * _Nullable)videoURL;
 /// 判断两个HXPhotoModel是否是同一个
 /// @param photoModel 模型
-- (BOOL)isEqualPhotoModel:(HXPhotoModel * _Nullable)photoModel;
+- (BOOL)isEqualToPhotoModel:(HXPhotoModel * _Nullable)photoModel;
+
+/// 获取当前asset是不是iCloud上的资源
+- (void)isICloudAssetWithCompletion:(void (^_Nullable)(BOOL isICloud, HXPhotoModel * _Nullable model))completion;
 
 #pragma mark - < Request >
 + (id _Nullable)requestImageWithURL:(NSURL *_Nullable)url progress:(void (^ _Nullable) (NSInteger receivedSize, NSInteger expectedSize))progress completion:(void (^ _Nullable) (UIImage * _Nullable image, NSURL * _Nullable url, NSError * _Nullable error))completion;
-
-+ (PHImageRequestID)requestThumbImageWithPHAsset:(PHAsset * _Nullable)asset
-                                           width:(CGFloat)width
-                                      completion:(void (^ _Nullable)(UIImage *_Nullable image, PHAsset * _Nullable asset))completion;
-
-- (PHImageRequestID)requestImageWithOptions:(PHImageRequestOptions * _Nullable)options
-                                 targetSize:(CGSize)targetSize
-                              resultHandler:(void (^ _Nullable)(UIImage *__nullable result, NSDictionary *__nullable info))resultHandler;
 
 /// 请求获取缩略图，主要用在列表上展示。此方法会回调多次，如果为视频的话就是视频封面
 - (PHImageRequestID)requestThumbImageCompletion:(HXModelImageSuccessBlock _Nullable)completion;
 - (PHImageRequestID)requestThumbImageWithWidth:(CGFloat)width
                                     completion:(HXModelImageSuccessBlock _Nullable)completion;
-- (PHImageRequestID)requestThumbImageWithOptions:(PHImageRequestOptions * _Nullable)options
-                                           width:(CGFloat)width
-                                      completion:(HXModelImageSuccessBlock _Nullable)completion;
 
 /// 请求获取缩略图，主要用在列表上展示。此方法只会回调一次
 - (PHImageRequestID)highQualityRequestThumbImageWithWidth:(CGFloat)width
@@ -257,6 +250,12 @@
                                        progressHandler:(HXModelProgressHandler _Nullable)progressHandler
                                                success:(HXModelImageDataSuccessBlock _Nullable)success
                                                 failed:(HXModelFailedBlock _Nullable)failed;
+
+- (PHImageRequestID)requestImageDataWithLoadOriginalImage:(BOOL)originalImage
+                                       startRequestICloud:(HXModelStartRequestICloud)startRequestICloud
+                                          progressHandler:(HXModelProgressHandler)progressHandler
+                                                  success:(HXModelImageDataSuccessBlock)success
+                                                   failed:(HXModelFailedBlock)failed;
 
 /// 请求获取AVAsset
 - (PHImageRequestID)requestAVAssetStartRequestICloud:(HXModelStartRequestICloud _Nullable)startRequestICloud
@@ -325,6 +324,10 @@
 - (void)getAssetURLWithVideoPresetName:(NSString * _Nullable)presetName
                                success:(HXModelURLHandler _Nullable)success
                                 failed:(HXModelFailedBlock _Nullable)failed;
+
+/// 获取原视频地址
+- (void)getVideoURLWithSuccess:(HXModelURLHandler _Nullable)success
+                        failed:(HXModelFailedBlock _Nullable)failed;
 
 @property (assign, nonatomic) CGFloat previewContentOffsetX;
 

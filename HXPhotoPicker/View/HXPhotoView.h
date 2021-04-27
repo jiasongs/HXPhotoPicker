@@ -1,9 +1,9 @@
 //
 //  HXPhotoView.h
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 17/2/17.
-//  Copyright © 2017年 洪欣. All rights reserved.
+//  Created by Silence on 17/2/17.
+//  Copyright © 2017年 Silence. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
@@ -97,8 +97,12 @@ typedef NS_ENUM(NSUInteger, HXPhotoViewPreViewShowStyle) {
 @property (assign, nonatomic) BOOL deleteCellShowAlert;
 /// 预览大图时的风格样式
 @property (assign, nonatomic) HXPhotoViewPreViewShowStyle previewStyle;
+/// 预览时是否显示底部pageControl，暗黑样式下才有效
+@property (assign, nonatomic) BOOL previewShowBottomPageControl;
 /// 底部选择视图是否自适应暗黑风格
 @property (assign, nonatomic) BOOL adaptiveDarkness;
+/// HXPhotoView最大高度，默认屏幕高度
+@property (assign, nonatomic) CGFloat maximumHeight;
 /// 跳转相册 如果需要选择相机/相册时 还是需要选择
 - (void)goPhotoViewController;
 /// 跳转相册 过滤掉选择 - 不管需不需要选择 直接前往相册

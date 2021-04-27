@@ -1,9 +1,9 @@
 //
 //  HXCustomNavigationController.h
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 2017/10/31.
-//  Copyright © 2017年 洪欣. All rights reserved.
+//  Created by Silence on 2017/10/31.
+//  Copyright © 2017年 Silence. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
@@ -67,4 +67,6 @@
                        delegate:(id<HXCustomNavigationControllerDelegate>)delegate
                       doneBlock:(viewControllerDidDoneBlock)doneBlock
                     cancelBlock:(viewControllerDidCancelBlock)cancelBlock;
+
+- (void)clearAssetCache;
 @end

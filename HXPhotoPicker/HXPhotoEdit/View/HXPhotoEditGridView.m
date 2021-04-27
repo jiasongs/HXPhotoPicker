@@ -2,8 +2,8 @@
 //  HXPhotoEditGridView.m
 //  photoEditDemo
 //
-//  Created by 洪欣 on 2020/6/29.
-//  Copyright © 2020 洪欣. All rights reserved.
+//  Created by Silence on 2020/6/29.
+//  Copyright © 2020 Silence. All rights reserved.
 //
 
 #import "HXPhotoEditGridView.h"
@@ -83,6 +83,11 @@ const CGFloat HXControlWidth = 30.f;
 - (void)setMaskColor:(CGColorRef)maskColor {
     _maskColor = maskColor;
     self.gridMaskLayer.maskColor = maskColor;
+}
+- (void)setIsRound:(BOOL)isRound {
+    _isRound = isRound;
+    self.gridLayer.isRound = isRound;
+    self.gridMaskLayer.isRound = isRound;
 }
 - (void)layoutSubviews {
     [super layoutSubviews];

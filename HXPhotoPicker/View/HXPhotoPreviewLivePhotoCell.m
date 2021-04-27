@@ -1,9 +1,9 @@
 //
 //  HXPhotoPreviewLivePhotoCell.m
-//  HXPhotoPicker-Demo
+//  HXPhotoPickerExample
 //
-//  Created by 洪欣 on 2019/12/14.
-//  Copyright © 2019 洪欣. All rights reserved.
+//  Created by Silence on 2019/12/14.
+//  Copyright © 2019 Silence. All rights reserved.
 //
 
 #import "HXPhotoPreviewLivePhotoCell.h"
