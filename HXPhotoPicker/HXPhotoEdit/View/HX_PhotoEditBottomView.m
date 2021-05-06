@@ -57,11 +57,7 @@
     self.emojiBtn.hidden = YES;
     self.textBtn.hidden = YES;
     self.mosaicBtn.hidden = YES;
-}
-
-- (void)layoutSubviews {
-    [super layoutSubviews];
-    self.clipBtn.frame = CGRectMake(0, 0, 45, self.bounds.size.height);
+   
 }
 
 - (void)setThemeColor:(UIColor *)themeColor {
