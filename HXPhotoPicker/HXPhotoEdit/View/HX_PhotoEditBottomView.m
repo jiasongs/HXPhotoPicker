@@ -52,7 +52,18 @@
     [self.doneBtn hx_radiusWithRadius:3 corner:UIRectCornerAllCorners];
     [self.doneBtn setTitle:[NSBundle hx_localizedStringForKey:@"完成"] forState:UIControlStateNormal];
     self.doneBtn.titleLabel.font = [UIFont hx_mediumPingFangOfSize:16];
+    
+    self.graffitiBtn.hidden = YES;
+    self.emojiBtn.hidden = YES;
+    self.textBtn.hidden = YES;
+    self.mosaicBtn.hidden = YES;
 }
+
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    self.clipBtn.frame = CGRectMake(0, 0, 45, self.bounds.size.height);
+}
+
 - (void)setThemeColor:(UIColor *)themeColor {
     _themeColor = themeColor;
     [self.doneBtn setBackgroundColor:themeColor];
