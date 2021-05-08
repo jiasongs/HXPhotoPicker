@@ -317,7 +317,7 @@
                 }
                 // 不是原图压缩
                 if (!original) {
-                    image = [image hx_scaleImagetoScale:0.6f];
+                    image = [image hx_scaleImagetoScale:0.8f];
                 }
             } else {
 #if HasSDWebImage
