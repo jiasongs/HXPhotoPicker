@@ -11,6 +11,20 @@
 #import "HXPhotoEdit.h"
 #import "HXPhotoManager.h"
 
+#if __has_include(<SDWebImage/UIImageView+WebCache.h>)
+#import <SDWebImage/UIImageView+WebCache.h>
+#import <SDWebImage/SDAnimatedImageView.h>
+#import <SDWebImage/SDAnimatedImageView+WebCache.h>
+#import <SDWebImage/UIImage+GIF.h>
+#import <SDWebImage/UIImage+MultiFormat.h>
+#elif __has_include("UIImageView+WebCache.h")
+#import "UIImageView+WebCache.h"
+#import "UIImage+GIF.h"
+#import "UIImage+MultiFormat.h"
+#import "SDAnimatedImageView.h"
+#import "SDAnimatedImageView+WebCache.h"
+#endif
+
 @implementation NSArray (HXExtension)
 
 - (BOOL)hx_detection {
@@ -295,13 +309,22 @@
 //        }];
 //    }else {
         [photoModel requestImageDataStartRequestICloud:nil progressHandler:nil success:^(NSData * _Nullable imageData, UIImageOrientation orientation, HXPhotoModel * _Nullable model, NSDictionary * _Nullable info) {
-            UIImage *image = [UIImage imageWithData:imageData];
-            if (image.imageOrientation != UIImageOrientationUp) {
-                image = [image hx_normalizedImage];
-            }
-            // 不是原图那就压缩
-            if (!original) {
-                image = [image hx_scaleImagetoScale:0.6f];
+            UIImage *image = nil;
+            if (model.type == HXPhotoModelMediaTypePhoto) {
+                image = [UIImage imageWithData:imageData];
+                if (image.imageOrientation != UIImageOrientationUp) {
+                    image = [image hx_normalizedImage];
+                }
+                // 不是原图压缩
+                if (!original) {
+                    image = [image hx_scaleImagetoScale:0.6f];
+                }
+            } else {
+#if HasSDWebImage
+                image = [SDAnimatedImage imageWithData:imageData];
+#else
+                image = [UIImage hx_animatedGIFWithData:imageData];
+#endif
             }
             if (successful) {
                 successful(image, nil, model);
