@@ -19,6 +19,8 @@ class PickerResultViewController: UIViewController, UICollectionViewDataSource, 
     @IBOutlet weak var pickerStyleControl: UISegmentedControl!
     @IBOutlet weak var previewStyleControl: UISegmentedControl!
     
+    var row_Count: Int = UI_USER_INTERFACE_IDIOM() == .pad ? 5 : 3
+    
     var addCell: ResultAddViewCell {
         get {
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ResultAddViewCellID", for: IndexPath(item: selectedAssets.count, section: 0)) as! ResultAddViewCell
@@ -44,6 +46,10 @@ class PickerResultViewController: UIViewController, UICollectionViewDataSource, 
     /// 相关配置
     var config: PickerConfiguration = PhotoTools.getWXPickerConfig(isMoment: true)
     
+    var localAssetArray: [PhotoAsset] = []
+    
+    var preselect: Bool = false
+    
     weak var previewTitleLabel: UILabel?
     weak var currentPickerController: PhotoPickerController?
     
@@ -57,7 +63,6 @@ class PickerResultViewController: UIViewController, UICollectionViewDataSource, 
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
         
         collectionViewTopConstraint.constant = 20
         collectionView.register(ResultViewCell.self, forCellWithReuseIdentifier: "ResultViewCellID")
@@ -72,6 +77,38 @@ class PickerResultViewController: UIViewController, UICollectionViewDataSource, 
         }
         view.backgroundColor = UIColor.white
         navigationItem.rightBarButtonItem = UIBarButtonItem.init(title: "设置", style:    .done, target: self, action: #selector(didSettingButtonClick))
+        
+        if preselect {
+            config.maximumSelectedVideoDuration = 0
+            config.maximumSelectedVideoCount = 0
+            let networkVideoURL = URL.init(string: "http://tsnrhapp.oss-cn-hangzhou.aliyuncs.com/picker_examle_video.mp4")!
+            let networkVideoAsset = PhotoAsset.init(networkVideoAsset: .init(videoURL: networkVideoURL))
+            selectedAssets.append(networkVideoAsset)
+            localAssetArray.append(networkVideoAsset)
+            
+            #if canImport(Kingfisher)
+            let networkImageURL = URL.init(string: "https://wx4.sinaimg.cn/large/a6a681ebgy1gojng2qw07g208c093qv6.gif")!
+            let networkImageAsset = PhotoAsset.init(networkImageAsset: NetworkImageAsset.init(thumbnailURL: networkImageURL, originalURL: networkImageURL))
+            selectedAssets.append(networkImageAsset)
+            localAssetArray.append(networkImageAsset)
+            #endif
+            
+            if let filePath = Bundle.main.path(forResource: "picker_example_gif_image", ofType: "GIF") {
+                let gifAsset = PhotoAsset.init(localImageAsset: .init(imageURL: URL.init(fileURLWithPath: filePath)))
+                selectedAssets.append(gifAsset)
+                localAssetArray.append(gifAsset)
+            }
+            if let filePath = Bundle.main.path(forResource: "videoeditormatter", ofType: "MP4") {
+                let videoAsset = PhotoAsset.init(localVideoAsset: .init(videoURL: URL.init(fileURLWithPath: filePath)))
+                selectedAssets.append(videoAsset)
+                localAssetArray.append(videoAsset)
+            }
+            
+            let networkVideoURL1 = URL.init(string: "http://tsnrhapp.oss-cn-hangzhou.aliyuncs.com/picker_examle_tiantaichuifeng.mp4")!
+            let networkVideoAsset1 = PhotoAsset.init(networkVideoAsset: .init(videoURL: networkVideoURL1))
+            selectedAssets.append(networkVideoAsset1)
+            localAssetArray.append(networkVideoAsset1)
+        }
     }
     @objc func longGestureRecognizerClick(longGestureRecognizer: UILongPressGestureRecognizer) {
         let touchPoint = longGestureRecognizer.location(in: collectionView)
@@ -104,7 +141,7 @@ class PickerResultViewController: UIViewController, UICollectionViewDataSource, 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         let flowLayout: UICollectionViewFlowLayout = collectionView.collectionViewLayout as! UICollectionViewFlowLayout
-        let itemWidth = Int((view.width - 24 - 2) / 3)
+        let itemWidth = Int((view.width - 24 - CGFloat(row_Count - 1))) / row_Count
         flowLayout.itemSize = CGSize(width: itemWidth, height: itemWidth)
         flowLayout.minimumInteritemSpacing = 1
         flowLayout.minimumLineSpacing = 1
@@ -113,7 +150,7 @@ class PickerResultViewController: UIViewController, UICollectionViewDataSource, 
     }
     func getCollectionViewrowCount() -> Int {
         let assetCount = canSetAddCell ? selectedAssets.count + 1 : selectedAssets.count
-        var rowCount = Int(assetCount / 3) + 1
+        var rowCount = assetCount / row_Count + 1
         if assetCount % 3 == 0 {
             rowCount -= 1
         }
@@ -122,7 +159,7 @@ class PickerResultViewController: UIViewController, UICollectionViewDataSource, 
     func configCollectionViewHeight() {
         let rowCount = getCollectionViewrowCount()
         beforeRowCount = rowCount
-        let itemWidth = Int((view.width - 24 - 2) / 3)
+        let itemWidth = Int((view.width - 24 - CGFloat(row_Count - 1))) / row_Count
         var heightConstraint = CGFloat(rowCount * itemWidth + rowCount)
         if heightConstraint > view.height - UIDevice.navigationBarHeight - 20 - 150 {
             heightConstraint = view.height - UIDevice.navigationBarHeight - 20 - 150
@@ -164,6 +201,7 @@ class PickerResultViewController: UIViewController, UICollectionViewDataSource, 
         if pickerStyleControl.selectedSegmentIndex == 0 {
             pickerController.modalPresentationStyle = .fullScreen
         }
+        pickerController.localAssetArray = localAssetArray
         pickerController.autoDismiss = false
         present(pickerController, animated: true, completion: nil)
     }
@@ -174,10 +212,22 @@ class PickerResultViewController: UIViewController, UICollectionViewDataSource, 
             ProgressHUD.showWarning(addedTo: self.view, text: "请先选择资源", animated: true, delay: 1.5)
             return
         }
-        weak var weakSelf = self
         var count = 0
         for photoAsset in selectedAssets {
             if photoAsset.mediaType == .photo {
+                if photoAsset.isNetworkAsset {
+                    #if canImport(Kingfisher)
+                    photoAsset.getNetworkImageURL { (url, isNetwork) in
+                        count += 1
+                        print(isNetwork ? "网络图片：" : "编辑后的网络图片", url!)
+                        if count == total {
+                            ProgressHUD.hide(forView: self.view, animated: false)
+                            ProgressHUD.showSuccess(addedTo: self.view, text: "获取完成", animated: true, delay: 1.5)
+                        }
+                    }
+                    continue
+                    #endif
+                }
                 if photoAsset.mediaSubType == .livePhoto {
                     var imageURL: URL?
                     var videoURL: URL?
@@ -185,7 +235,7 @@ class PickerResultViewController: UIViewController, UICollectionViewDataSource, 
                         imageURL = url
                     } videoHandler: { (url) in
                         videoURL = url
-                    } completionHandler: { (error) in
+                    } completionHandler: { [weak self] (error) in
                         count += 1
                         if error == nil {
                             let image = UIImage.init(contentsOfFile: imageURL!.path)
@@ -195,21 +245,21 @@ class PickerResultViewController: UIViewController, UICollectionViewDataSource, 
                             print("LivePhoto中的内容获取失败\(error!)")
                         }
                         if count == total {
-                            ProgressHUD.hide(forView: weakSelf?.view, animated: false)
-                            ProgressHUD.showSuccess(addedTo: weakSelf?.view, text: "获取完成", animated: true, delay: 1.5)
+                            ProgressHUD.hide(forView: self?.view, animated: false)
+                            ProgressHUD.showSuccess(addedTo: self?.view, text: "获取完成", animated: true, delay: 1.5)
                         }
                     }
                 }else {
                     count += 1
-                    photoAsset.requestImageURL { (imageURL) in
+                    photoAsset.requestImageURL { [weak self] (imageURL) in
                         if imageURL != nil {
                             print("图片地址：\(imageURL!)")
                         }else {
                             print("图片地址获取失败")
                         }
                         if count == total {
-                            ProgressHUD.hide(forView: weakSelf?.view, animated: false)
-                            ProgressHUD.showSuccess(addedTo: weakSelf?.view, text: "获取完成", animated: true, delay: 1.5)
+                            ProgressHUD.hide(forView: self?.view, animated: false)
+                            ProgressHUD.showSuccess(addedTo: self?.view, text: "获取完成", animated: true, delay: 1.5)
                         }
                     }
 //                    print("图片：\(photoAsset.originalImage!)")
@@ -218,7 +268,18 @@ class PickerResultViewController: UIViewController, UICollectionViewDataSource, 
 //                    }
                 }
             }else {
-                photoAsset.requestVideoURL { (videoURL) in
+                if photoAsset.isNetworkAsset {
+                    photoAsset.getNetworkVideoURL { (videoURL, isNetwork) in
+                        count += 1
+                        print(isNetwork ? "网络视频：" : "编辑后的网络视频", videoURL!)
+                        if count == total {
+                            ProgressHUD.hide(forView: self.view, animated: false)
+                            ProgressHUD.showSuccess(addedTo: self.view, text: "获取完成", animated: true, delay: 1.5)
+                        }
+                    }
+                    continue
+                }
+                photoAsset.requestVideoURL { [weak self] (videoURL) in
                     count += 1
                     if videoURL == nil {
                         print("视频地址获取失败")
@@ -226,8 +287,8 @@ class PickerResultViewController: UIViewController, UICollectionViewDataSource, 
                         print("视频地址：\(videoURL!)")
                     }
                     if count == total {
-                        ProgressHUD.hide(forView: weakSelf?.view, animated: false)
-                        ProgressHUD.showSuccess(addedTo: weakSelf?.view, text: "获取完成", animated: true, delay: 1.5)
+                        ProgressHUD.hide(forView: self?.view, animated: false)
+                        ProgressHUD.showSuccess(addedTo: self?.view, text: "获取完成", animated: true, delay: 1.5)
                     }
                 }
             }
@@ -280,6 +341,8 @@ class PickerResultViewController: UIViewController, UICollectionViewDataSource, 
         // modalPresentationStyle = .custom 会使用框架自带的动画效果
         // 预览时可以重新初始化一个config设置单独的颜色或其他配置
         let previewConfig = PhotoTools.getWXPickerConfig()
+        // 编辑器配置保持一致
+        previewConfig.photoEditor = config.photoEditor
 //        previewConfig.prefersStatusBarHidden = true
 //        previewConfig.previewView.bottomView.showSelectedView = false
         var style: UIModalPresentationStyle = .custom
@@ -392,8 +455,20 @@ extension PickerResultViewController: PhotoPickerControllerDelegate {
         isOriginal = result.isOriginal
         collectionView.reloadData()
         updateCollectionViewHeight()
-//        result.getURLs { (urls) in
-//            print(urls)
+        
+//        result.getImage { (image, photoAsset, index) in
+//            if let image = image {
+//                print("success", image)
+//            }else {
+//                print("failed")
+//            }
+//        } completionHandler: { (images) in
+//            print(images)
+//        }
+//        result.getURLs { (url, isNetwork, index, type) in
+//            print(type == .photo ? isNetwork ? "网络图片：" : "图片：" : isNetwork ? "网络视频" : "视频：", url! , "index:" , index)
+//        } completionHandler: { (urls) in
+//
 //        }
         pickerController.dismiss(animated: true, completion: nil)
     }
@@ -435,6 +510,15 @@ extension PickerResultViewController: PhotoPickerControllerDelegate {
     func pickerController(_ pickerController: PhotoPickerController, dismissPreviewViewForIndexAt index: Int) -> UIView? {
         let cell = collectionView.cellForItem(at: IndexPath(item: index, section: 0))
         return cell
+    }
+    
+    func pickerController(_ pickerController: PhotoPickerController, previewNetworkImageDownloadSuccess photoAsset: PhotoAsset, atIndex: Int) {
+        if pickerController.isPreviewAsset {
+            let cell = collectionView.cellForItem(at: IndexPath(item: atIndex, section: 0)) as! ResultViewCell
+            if cell.downloadStatus == .failed {
+                cell.requestThumbnailImage()
+            }
+        }
     }
 }
 
