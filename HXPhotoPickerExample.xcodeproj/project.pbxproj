@@ -1524,7 +1524,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-HXPhotoPicker-Demo/Pods-HXPhotoPicker-Demo-frameworks.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-HXPhotoPickerExample/Pods-HXPhotoPickerExample-frameworks.sh",
 				"${PODS_ROOT}/LookinServer/LookinServer.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
@@ -1533,7 +1533,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-HXPhotoPicker-Demo/Pods-HXPhotoPicker-Demo-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-HXPhotoPickerExample/Pods-HXPhotoPickerExample-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		434547430CF3E6D5B728C923 /* [CP] Check Pods Manifest.lock */ = {

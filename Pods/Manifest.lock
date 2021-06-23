@@ -1,0 +1,60 @@
+PODS:
+  - AFNetworking (3.2.1):
+    - AFNetworking/NSURLSession (= 3.2.1)
+    - AFNetworking/Reachability (= 3.2.1)
+    - AFNetworking/Security (= 3.2.1)
+    - AFNetworking/Serialization (= 3.2.1)
+    - AFNetworking/UIKit (= 3.2.1)
+  - AFNetworking/NSURLSession (3.2.1):
+    - AFNetworking/Reachability
+    - AFNetworking/Security
+    - AFNetworking/Serialization
+  - AFNetworking/Reachability (3.2.1)
+  - AFNetworking/Security (3.2.1)
+  - AFNetworking/Serialization (3.2.1)
+  - AFNetworking/UIKit (3.2.1):
+    - AFNetworking/NSURLSession
+  - HXPHPicker/Core (1.1.1)
+  - HXPHPicker/Editor (1.1.1):
+    - HXPHPicker/Core
+  - HXPHPicker/Full (1.1.1):
+    - HXPHPicker/Core
+    - HXPHPicker/Editor
+    - HXPHPicker/Picker
+    - Kingfisher (~> 6.0)
+  - HXPHPicker/Picker (1.1.1):
+    - HXPHPicker/Core
+  - Kingfisher (6.3.0)
+  - LookinServer (1.0.0)
+  - Masonry (1.1.0)
+  - SDWebImage (5.9.5):
+    - SDWebImage/Core (= 5.9.5)
+  - SDWebImage/Core (5.9.5)
+
+DEPENDENCIES:
+  - AFNetworking
+  - HXPHPicker/Full
+  - LookinServer
+  - Masonry
+  - SDWebImage
+
+SPEC REPOS:
+  https://github.com/CocoaPods/Specs.git:
+    - AFNetworking
+    - HXPHPicker
+    - Kingfisher
+    - LookinServer
+    - Masonry
+    - SDWebImage
+
+SPEC CHECKSUMS:
+  AFNetworking: b6f891fdfaed196b46c7a83cf209e09697b94057
+  HXPHPicker: c8cca2f8d737006e9fefb30558d0dc474232f07c
+  Kingfisher: 6c3df386db71d82c0817a429d2c9421a77396529
+  LookinServer: 0002891cd3cec5e082a910e897dfe71b4f06b89e
+  Masonry: 678fab65091a9290e40e2832a55e7ab731aad201
+  SDWebImage: 0b2ba0d56479bf6a45ecddbfd5558bea93150d25
+
+PODFILE CHECKSUM: df74986ace6e5425d6e19913ac8c91f6347e155b
+
+COCOAPODS: 1.10.1
