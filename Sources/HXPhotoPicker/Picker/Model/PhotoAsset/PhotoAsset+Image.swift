@@ -64,13 +64,7 @@ public extension PhotoAsset {
         AssetManager.requestImageData(for: phAsset, options: options) { (result) in
             switch result {
             case .success(let dataResult):
-                let image = {
-                    if phAsset.isHdrPhoto {
-                        return UIImage.hdrDecoded(dataResult.imageData)
-                    } else {
-                        return UIImage(data: dataResult.imageData)?.normalizedImage()
-                    }
-                }()
+                let image = UIImage(data: dataResult.imageData)?.normalizedImage()
                 if isGif && self.mediaSubType != .imageAnimated {
                     if let data = PhotoTools.getImageData(for: image) {
                         originalImage = UIImage(data: data)

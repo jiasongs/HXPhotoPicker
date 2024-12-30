@@ -47,9 +47,6 @@ class PhotoPreviewContentPhotoView: UIView, PhotoPreviewContentViewProtocol {
     func initViews() {
         imageView = ImageView()
         imageView.size = size
-        if #available(iOS 17, *) {
-            imageView.preferredImageDynamicRange = .high
-        }
         addSubview(imageView)
     }
     
@@ -374,7 +371,7 @@ extension PhotoPreviewContentPhotoView {
                 guard let self = self, self.photoAsset == asset else {
                     return
                 }
-                if inICloud || asset.isHdrAsset {
+                if inICloud {
                     self.requestPreviewImageData()
                 }else {
                     self.requestPreviewImage()
@@ -482,26 +479,22 @@ extension PhotoPreviewContentPhotoView {
                             }
                         }
                     }
-                    if asset.isHdrAsset {
-                        handler(UIImage.hdrDecoded(dataResult.imageData))
-                    } else {
-                        let dataCount = CGFloat(dataResult.imageData.count)
-                        if dataCount > 3000000 {
-                            PhotoTools.compressImageData(
-                                dataResult.imageData,
-                                compressionQuality: dataCount.compressionQuality,
-                                queueLabel: "com.hxphotopicker.previewrequest"
-                            ) {
-                                guard let imageData = $0 else {
-                                    handler()
-                                    return
-                                }
-                                handler(.init(data: imageData))
+                    let dataCount = CGFloat(dataResult.imageData.count)
+                    if dataCount > 3000000 {
+                        PhotoTools.compressImageData(
+                            dataResult.imageData,
+                            compressionQuality: dataCount.compressionQuality,
+                            queueLabel: "com.hxphotopicker.previewrequest"
+                        ) {
+                            guard let imageData = $0 else {
+                                handler()
+                                return
                             }
-                            return
+                            handler(.init(data: imageData))
                         }
-                        handler()
+                        return
                     }
+                    handler()
                 }
             }
         case .failure(let error):
